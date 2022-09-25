@@ -1,0 +1,1 @@
+const allUsersDesktopEntryInstallationDirectoryPath = '/usr/share/applications/';

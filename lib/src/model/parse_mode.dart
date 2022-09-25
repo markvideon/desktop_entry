@@ -1,0 +1,4 @@
+enum DesktopSpecificationParseMode {
+  desktopEntry,
+  desktopAction
+}

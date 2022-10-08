@@ -1,393 +1,59 @@
 // Reference: https://specifications.freedesktop.org/desktop-entry-spec/desktop-entry-spec-latest.html
-import 'dart:io';
+import 'dart:io' if (dart.library.html) 'dart:html' show File;
 
-import 'package:collection/collection.dart' show IterableExtension, ListEquality;
-import 'package:path_provider/path_provider.dart' show getTemporaryDirectory;
-import 'package:path/path.dart' show Context, Style;
+import 'package:collection/collection.dart' show ListEquality;
+import 'mixin/unrecognised_entries_mixin.dart';
+import 'group_name.dart';
+import 'interface/write_to_file.dart';
+
 import '../util/build_line.dart';
-import '../util/parse_line.dart';
-import '../util/util.dart';
-import 'parse_mode.dart';
-import 'desktop_action.dart';
-import 'shared_mixin.dart';
+import 'mixin/group_mixin.dart';
+import 'mixin/shared_mixin.dart';
 import 'specification_types.dart';
+import 'unrecognised/unrecognised_entry.dart';
 
-class DesktopEntry with DesktopSpecificationSharedMixin {
+class DesktopEntry with DesktopSpecificationSharedMixin, UnrecognisedEntriesMixin, GroupMixin implements FileWritable {
   DesktopEntry({
+    DesktopGroup? group,
     required this.type,
     this.version,
-    required localestring entryName,
+    required SpecificationLocaleString name,
     this.genericName,
     this.noDisplay,
     this.comment,
-    iconstring? icon,
+    SpecificationIconString? icon,
     this.hidden,
-    this.onlyShowIn = const <string>[],
-    this.notShowIn = const <string>[],
+    this.onlyShowIn = const <SpecificationString>[],
+    this.notShowIn = const <SpecificationString>[],
     this.dBusActivatable,
     this.tryExec,
-    string? exec,
+    SpecificationString? exec,
     this.path,
     this.terminal,
-    this.actions = const <DesktopAction>[],
-    this.mimeType = const <string>[],
-    this.categories = const <string>[],
-    this.implements = const <string>[],
-    this.keywords = const <localestring>[],
+    this.actions = const <SpecificationString>[],
+    this.mimeType = const <SpecificationString>[],
+    this.categories = const <SpecificationString>[],
+    this.implements = const <SpecificationString>[],
+    LocalisableSpecificationTypeList<SpecificationLocaleString>? keywords,
     this.startupNotify,
     this.startupWmClass,
     this.url,
     this.prefersNonDefaultGpu,
     this.singleMainWindow,
-    required this.fileComments
+    List<UnrecognisedEntry>? unrecognisedEntries
   }) {
     // URL
-    if ((type.value == 'Link' && url is! string)) {
+    if ((type.value == 'Link' && url is! SpecificationString)) {
       throw Exception('URL must be defined for type `Link`.');
     }
+    this.group = group ?? DesktopGroup('Desktop Entry');
+    this.keywords = keywords ?? LocalisableSpecificationTypeList([], elementConstructor: () => SpecificationLocaleString(''));
     // Setting fields from mixin.
-    name = entryName;
+    this.name = name;
     this.icon = icon;
     this.exec = exec;
+    this.unrecognisedEntries = unrecognisedEntries ?? <UnrecognisedEntry>[];
   }
-
-  factory DesktopEntry.fromMap(Map<String, dynamic> map) {
-    final actions = map[fieldActions] != null ?
-    (map[fieldActions] as List).mapIndexed((idx, e) => DesktopAction.fromMap(e)).toList(growable: false) :
-    <DesktopAction>[];
-
-    return DesktopEntry(
-      type: map[fieldType],
-      version: map[fieldVersion],
-      entryName: map[DesktopSpecificationSharedMixin.fieldName],
-      genericName: map[fieldGenericName],
-      noDisplay: map[fieldNoDisplay],
-      comment: map[fieldComment],
-      icon: map[DesktopSpecificationSharedMixin.fieldIcon],
-      hidden: map[fieldHidden],
-      onlyShowIn: map[fieldOnlyShowIn] ?? <string>[],
-      notShowIn: map[fieldNotShowIn] ?? <string>[],
-      dBusActivatable: map[fieldDBusActivatable],
-      tryExec: map[fieldTryExec],
-      exec: map[DesktopSpecificationSharedMixin.fieldExec],
-      path: map[fieldPath],
-      terminal: map[fieldTerminal],
-      actions: actions,
-      mimeType: map[fieldMimeType] ?? <string>[],
-      categories: map[fieldCategories] ?? <string>[],
-      implements: map[fieldImplements] ?? <string>[],
-      keywords: map[fieldKeywords] ?? <localestring>[],
-      startupNotify: map[fieldStartupNotify],
-      startupWmClass: map[fieldStartupWmClass],
-      url: map[fieldUrl],
-      prefersNonDefaultGpu: map[fieldPrefersNonDefaultGpu],
-      singleMainWindow: map[fieldSingleMainWindow],
-      fileComments: map[fieldFileComments],
-    );
-  }
-
-  static Map<String, dynamic> toMap(DesktopEntry entry) {
-    return <String, dynamic> {
-      fieldType: entry.type.copyWith(),
-      if (entry.version is string) fieldVersion: entry.version!.copyWith(),
-      DesktopSpecificationSharedMixin.fieldName: entry.name.copyWith(),
-      if (entry.genericName is localestring) fieldGenericName: entry.genericName!.copyWith(),
-      if (entry.noDisplay is boolean) fieldNoDisplay: entry.noDisplay!.copyWith(),
-      if (entry.comment is localestring) fieldComment: entry.comment!.copyWith(),
-      if (entry.icon is iconstring) DesktopSpecificationSharedMixin.fieldIcon: entry.icon!.copyWith(),
-      if (entry.hidden is boolean) fieldHidden: entry.hidden!.copyWith(),
-      if (entry.onlyShowIn.isNotEmpty) fieldOnlyShowIn: List.of(entry.onlyShowIn),
-      if (entry.notShowIn.isNotEmpty) fieldNotShowIn: List.of(entry.notShowIn),
-      if (entry.dBusActivatable is boolean) fieldDBusActivatable: entry.dBusActivatable!.copyWith(),
-      if (entry.tryExec is string) fieldTryExec: entry.tryExec!.copyWith(),
-      if (entry.exec is string) DesktopSpecificationSharedMixin.fieldExec: entry.exec!.copyWith(),
-      if (entry.path is string) fieldPath: entry.path!.copyWith(),
-      if (entry.terminal is boolean) fieldTerminal: entry.terminal!.copyWith(),
-      if (entry.actions.isNotEmpty) fieldActions: entry.actions.map((action) => DesktopAction.toMap(action)).toList(growable: false),
-      if (entry.mimeType.isNotEmpty) fieldMimeType: List.of(entry.mimeType),
-      if (entry.categories.isNotEmpty) fieldCategories: List.of(entry.categories),
-      if (entry.implements.isNotEmpty) fieldImplements: List.of(entry.implements),
-      if (entry.keywords.isNotEmpty) fieldKeywords: List.of(entry.keywords),
-      if (entry.startupNotify is boolean) fieldStartupNotify: entry.startupNotify!.copyWith(),
-      if (entry.startupWmClass is string) fieldStartupWmClass: entry.startupWmClass!.copyWith(),
-      if (entry.url is string) fieldUrl: entry.url,
-      if (entry.prefersNonDefaultGpu is boolean) fieldPrefersNonDefaultGpu: entry.prefersNonDefaultGpu,
-      if (entry.singleMainWindow is boolean) fieldSingleMainWindow: entry.singleMainWindow
-    };
-  }
-
-  factory DesktopEntry.fromLines(Iterable<String> lines) {
-    if (lines.isEmpty) {
-      throw Exception('File appears to be empty.');
-    }
-
-    // First line should always be the desktop entry header.
-    if (lines.first.trim() != DesktopEntry.header) {
-      throw Exception('Unexpected contents in first line. Expected `[Desktop Entry]`. Got `${lines.first}`');
-    }
-
-    final map = <String, dynamic> {};
-    int activeActionIdx = -1;
-
-    DesktopSpecificationParseMode parseMode = DesktopSpecificationParseMode.desktopEntry;
-
-    for (var line in lines) {
-      final effectiveLine = line.trim();
-      // Ignore empty lines, comments.
-      if (effectiveLine.isNotEmpty && effectiveLine.startsWith('#') == false) {
-        final mapEntry = parseLine(effectiveLine);
-
-        if (mapEntry == null) {
-          // Header cases handled here
-          if (map[fieldActions] is List) {
-            final keyIsActionHeader = (map[fieldActions] as List<Map>).any((element) => DesktopAction.buildHeader((element[DesktopAction.fieldEntryKey] as string).value) == effectiveLine);
-
-            if (keyIsActionHeader) {
-              parseMode = DesktopSpecificationParseMode.desktopAction;
-              activeActionIdx =
-                  (map[fieldActions] as List<Map>).indexWhere((element) => DesktopAction.buildHeader((element[DesktopAction.fieldEntryKey] as string).value) == effectiveLine);
-            }
-          }
-        } else {
-          // Expect all non-header lines to conform to
-          // KEY=value[;value2;...;valueN]\n
-          // Split the string at the first equals sign. It is possible that some
-          // property could contain an equals sign - the choice not to use
-          // the `split` method is deliberate.
-          switch (parseMode) {
-            case DesktopSpecificationParseMode.desktopEntry:
-              switch (mapEntry.key) {
-                case DesktopEntry.fieldType:
-                  map[mapEntry.key] = string(mapEntry.value);
-                  break;
-                case DesktopEntry.fieldVersion:
-                  map[mapEntry.key] = string(mapEntry.value);
-                  break;
-                case DesktopSpecificationSharedMixin.fieldName:
-                  map[mapEntry.key] = localestring(mapEntry.value);
-                  break;
-                case DesktopEntry.fieldGenericName:
-                  map[mapEntry.key] = localestring(mapEntry.value);
-                  break;
-                case DesktopEntry.fieldNoDisplay:
-                  map[mapEntry.key] = boolean(stringToBool(mapEntry.value));
-                  break;
-                case DesktopEntry.fieldComment:
-                  map[mapEntry.key] = localestring(mapEntry.value);
-                  break;
-                case DesktopSpecificationSharedMixin.fieldIcon:
-                  map[mapEntry.key] = iconstring(mapEntry.value);
-                  break;
-                case DesktopEntry.fieldHidden:
-                  map[mapEntry.key] = boolean(stringToBool(mapEntry.value));
-                  break;
-                case DesktopEntry.fieldOnlyShowIn:
-                  map[mapEntry.key] = (mapEntry.value as List).map((e) => string(e)).toList(growable: false);
-                  break;
-                case DesktopEntry.fieldNotShowIn:
-                  map[mapEntry.key] = (mapEntry.value as List).map((e) => string(e)).toList(growable: false);
-                  break;
-                case DesktopEntry.fieldDBusActivatable:
-                  map[mapEntry.key] = boolean(mapEntry.value);
-                  break;
-                case DesktopEntry.fieldTryExec:
-                  map[mapEntry.key] = string(mapEntry.value);
-                  break;
-                case DesktopSpecificationSharedMixin.fieldExec:
-                  map[mapEntry.key] = string(mapEntry.value);
-                  break;
-                case DesktopEntry.fieldPath:
-                  map[mapEntry.key] = string(mapEntry.value);
-                  break;
-                case DesktopEntry.fieldTerminal:
-                  map[mapEntry.key] = boolean(mapEntry.value);
-                  break;
-                case DesktopEntry.fieldActions:
-                  map[mapEntry.key] = (mapEntry.value as List).map((e) {
-                    return <String, dynamic>{
-                      DesktopAction.fieldEntryKey: string(e),
-                    };
-                  }).toList(growable: false);
-                  break;
-                case DesktopEntry.fieldMimeType:
-                  map[mapEntry.key] = (mapEntry.value as List).map((e) {
-                    return string(e);
-                  }).toList(growable: false);
-                  break;
-                case DesktopEntry.fieldCategories:
-                  map[mapEntry.key] = (mapEntry.value as List).map((e) {
-                    return string(e);
-                  }).toList(growable: false);
-                  break;
-                case DesktopEntry.fieldImplements:
-                  map[mapEntry.key] = (mapEntry.value as List).map((e) {
-                    return string(e);
-                  }).toList(growable: false);
-                  break;
-                case DesktopEntry.fieldKeywords:
-                  map[mapEntry.key] = (mapEntry.value as List).map((e) {
-                    return string(e);
-                  }).toList(growable: false);
-                  break;
-                case DesktopEntry.fieldStartupNotify:
-                  map[mapEntry.key] = boolean(stringToBool(mapEntry.value));
-                  break;
-                case DesktopEntry.fieldStartupWmClass:
-                  map[mapEntry.key] = string(mapEntry.value);
-                  break;
-                case DesktopEntry.fieldUrl:
-                  map[mapEntry.key] = string(mapEntry.value);
-                  break;
-                case DesktopEntry.fieldPrefersNonDefaultGpu:
-                  map[mapEntry.key] = boolean(stringToBool(mapEntry.value));
-                  break;
-                case DesktopEntry.fieldSingleMainWindow:
-                  map[mapEntry.key] = boolean(stringToBool(mapEntry.value));
-                  break;
-              }
-              break;
-            case DesktopSpecificationParseMode.desktopAction:
-              switch (mapEntry.key) {
-                case DesktopSpecificationSharedMixin.fieldName:
-                  final actionList = map[fieldActions] as List<Map>;
-                  actionList[activeActionIdx][DesktopSpecificationSharedMixin.fieldName] = localestring(mapEntry.value);
-                  break;
-                case DesktopSpecificationSharedMixin.fieldIcon:
-                  final actionList = map[fieldActions] as List<Map>;
-                  actionList[activeActionIdx][DesktopSpecificationSharedMixin.fieldIcon] = iconstring(mapEntry.value);
-                  break;
-                case DesktopSpecificationSharedMixin.fieldExec:
-                  final actionList = map[fieldActions] as List<Map>;
-                  actionList[activeActionIdx][DesktopSpecificationSharedMixin.fieldExec] = string(mapEntry.value);
-                  break;
-              }
-              break;
-          }
-        }
-      }
-    }
-
-    return DesktopEntry.fromMap(map);
-  }
-
-  factory DesktopEntry.fromFile(File file) {
-    final lines = file.readAsLinesSync().where((element) => element.trim().isNotEmpty);
-    return DesktopEntry.fromLines(lines);
-  }
-
-  static Future<File> toFile(String name, DesktopEntry entry) async {
-    // Create file
-    final tempDir = await getTemporaryDirectory();
-    final pathContext = Context(style: Style.posix);
-    final absPath = pathContext.join(tempDir.path, '$name.desktop');
-    final file = File(absPath);
-
-    file.writeAsStringSync(buildLine(DesktopEntry.header), mode: FileMode.writeOnly);
-
-    if (entry.version is string) {
-      file.writeAsStringSync(buildLine(DesktopEntry.fieldVersion, entry.version!.value), mode: FileMode.writeOnlyAppend);
-    }
-    file.writeAsStringSync(buildLine(DesktopEntry.fieldType, entry.type.value), mode: FileMode.writeOnlyAppend);
-    file.writeAsStringSync(buildLine(DesktopSpecificationSharedMixin.fieldName, entry.name.value), mode: FileMode.writeOnlyAppend);
-    if (entry.genericName is localestring) {
-      file.writeAsStringSync(buildLine(DesktopEntry.fieldGenericName, entry.genericName!.value), mode: FileMode.writeOnlyAppend);
-    }
-    if (entry.noDisplay is boolean) {
-      file.writeAsStringSync(buildLine(DesktopEntry.fieldNoDisplay, entry.noDisplay!.value.toString()), mode: FileMode.writeOnlyAppend);
-    }
-    if (entry.comment is localestring) {
-      file.writeAsStringSync(buildLine(DesktopEntry.fieldComment, entry.comment!.value), mode: FileMode.writeOnlyAppend);
-    }
-    if (entry.icon is iconstring) {
-      file.writeAsStringSync(buildLine(DesktopSpecificationSharedMixin.fieldIcon, entry.icon!.value), mode: FileMode.writeOnlyAppend);
-    }
-    if (entry.hidden is boolean) {
-      file.writeAsStringSync(buildLine(DesktopEntry.fieldHidden, entry.hidden!.value.toString()), mode: FileMode.writeOnlyAppend);
-    }
-    if (entry.onlyShowIn.isNotEmpty) {
-      file.writeAsStringSync(buildListLine(DesktopEntry.fieldOnlyShowIn, entry.onlyShowIn.map((e) => e.value).toList(growable: false)), mode: FileMode.writeOnlyAppend);
-    }
-    if (entry.notShowIn.isNotEmpty) {
-      file.writeAsStringSync(buildListLine(DesktopEntry.fieldNotShowIn, entry.notShowIn.map((e) => e.value).toList(growable: false)), mode: FileMode.writeOnlyAppend);
-    }
-    if (entry.dBusActivatable is boolean) {
-      file.writeAsStringSync(buildLine(DesktopEntry.fieldDBusActivatable, entry.dBusActivatable!.value.toString()), mode: FileMode.writeOnlyAppend);
-    }
-    if (entry.tryExec is string) {
-      file.writeAsStringSync(buildLine(DesktopEntry.fieldTryExec, entry.tryExec!.value), mode: FileMode.writeOnlyAppend);
-    }
-    if (entry.exec is string) {
-      file.writeAsStringSync(buildLine(DesktopSpecificationSharedMixin.fieldExec, entry.exec!.value), mode: FileMode.writeOnlyAppend);
-    }
-    if (entry.path is string) {
-      file.writeAsStringSync(buildLine(DesktopEntry.fieldPath, entry.path!.value), mode: FileMode.writeOnlyAppend);
-    }
-    if (entry.terminal is boolean) {
-      file.writeAsStringSync(buildLine(DesktopEntry.fieldTerminal, entry.terminal!.value.toString()), mode: FileMode.writeOnlyAppend);
-    }
-    // Note that this corresponds only to the [Actions] field directly on a
-    // [DesktopEntry] section.
-    if (entry.actions.isNotEmpty) {
-      final actionList = entry.actions.map((e) => e.entryKey.value).toList(growable: false);
-      file.writeAsStringSync(buildListLine(DesktopEntry.fieldActions, actionList), mode: FileMode.writeOnlyAppend);
-    }
-    if (entry.mimeType.isNotEmpty) {
-      final mimeTypeList = entry.mimeType.map((e) => e.value).toList(growable: false);
-      file.writeAsStringSync(buildListLine(DesktopEntry.fieldMimeType, mimeTypeList), mode: FileMode.writeOnlyAppend);
-    }
-    if (entry.categories.isNotEmpty) {
-      final categoriesList = entry.categories.map((e) => e.value).toList(growable: false);
-      file.writeAsStringSync(buildListLine(DesktopEntry.fieldCategories, categoriesList), mode: FileMode.writeOnlyAppend);
-    }
-    if (entry.implements.isNotEmpty) {
-      final implementsList = entry.implements.map((e) => e.value).toList(growable: false);
-      file.writeAsStringSync(buildListLine(DesktopEntry.fieldImplements, implementsList), mode: FileMode.writeOnlyAppend);
-    }
-    if (entry.keywords.isNotEmpty) {
-      final keywordsList = entry.keywords.map((e) => e.value).toList(growable: false);
-      file.writeAsStringSync(buildListLine(DesktopEntry.fieldKeywords, keywordsList), mode: FileMode.writeOnlyAppend);
-    }
-    if (entry.startupNotify is boolean) {
-      file.writeAsStringSync(buildLine(DesktopEntry.fieldStartupNotify, entry.startupNotify!.value.toString()), mode: FileMode.writeOnlyAppend);
-    }
-    if (entry.startupWmClass is string) {
-      file.writeAsStringSync(buildLine(DesktopEntry.fieldStartupWmClass, entry.startupWmClass!.value), mode: FileMode.writeOnlyAppend);
-    }
-    if (entry.url is string) {
-      file.writeAsStringSync(buildLine(DesktopEntry.fieldStartupWmClass, entry.startupWmClass!.value), mode: FileMode.writeOnlyAppend);
-    }
-    if (entry.prefersNonDefaultGpu is boolean) {
-      file.writeAsStringSync(buildLine(DesktopEntry.fieldPrefersNonDefaultGpu, entry.prefersNonDefaultGpu!.value.toString()), mode: FileMode.writeOnlyAppend);
-    }
-    if (entry.singleMainWindow is boolean) {
-      file.writeAsStringSync(buildLine(DesktopEntry.fieldSingleMainWindow, entry.singleMainWindow!.value.toString()), mode: FileMode.writeOnlyAppend);
-    }
-
-    if (entry.actions.isNotEmpty) {
-      for (var action in entry.actions) {
-        file.writeAsStringSync(buildLine(''), mode: FileMode.writeOnlyAppend);
-
-        file.writeAsStringSync(buildLine(DesktopAction.buildHeader(action.entryKey.value)), mode: FileMode.writeOnlyAppend);
-        file.writeAsStringSync(buildLine(DesktopSpecificationSharedMixin.fieldName, action.name.value), mode: FileMode.writeOnlyAppend);
-        if (action.icon is iconstring) {
-          file.writeAsStringSync(buildLine(DesktopSpecificationSharedMixin.fieldIcon, action.icon!.value), mode: FileMode.writeOnlyAppend);
-        }
-        if (action.exec is string) {
-          file.writeAsStringSync(buildLine(DesktopSpecificationSharedMixin.fieldExec, action.exec!.value), mode: FileMode.writeOnlyAppend);
-        }
-      }
-    }
-
-    return file;
-  }
-
-  static const header = '[Desktop Entry]';
-
-  /// File comments, keys corresponding to the various fields defined below.
-  /// Not explicitly defined as part of the specification, but the specification
-  /// does describe preservation as expected behaviour with respect to comments.
-  Map<String, List<String>> fileComments = {};
-  static const fieldFileComments = 'fileComments';
 
   ///  This specification defines 3 types of desktop entries:
   ///  - Application (type 1),
@@ -396,7 +62,7 @@ class DesktopEntry with DesktopSpecificationSharedMixin {
   ///  To allow the addition of new types in the future,
   ///  implementations should ignore desktop entries with an unknown type.
   ///  Must be present on Types 1, 2, 3.
-  string type;
+  SpecificationString type;
   static const fieldType = 'Type';
 
   /// Version of the Desktop Entry Specification that the desktop entry
@@ -404,12 +70,12 @@ class DesktopEntry with DesktopSpecificationSharedMixin {
   /// Entries that confirm with this version of the specification should use
   /// 1.5. Note that the version field is not required to be present.
   /// May be present on Types 1, 2, 3.
-  string? version;
+  SpecificationString? version;
   static const fieldVersion = 'Version';
 
   ///  Generic name of the application, for example "Web Browser".
   ///  May be present on Types 1, 2, 3.
-  localestring? genericName;
+  SpecificationLocaleString? genericName;
   static const fieldGenericName = 'GenericName';
 
   ///  NoDisplay means "this application exists,
@@ -420,13 +86,13 @@ class DesktopEntry with DesktopSpecificationSharedMixin {
   ///  (there are tons of good reasons for this, including
   ///  e.g. the netscape -remote, or kfmclient openURL kind of stuff).
   ///  May be present on Types 1, 2, 3.
-  boolean? noDisplay;
+  SpecificationBoolean? noDisplay;
   static const fieldNoDisplay = 'NoDisplay';
 
   ///  Tooltip for the entry, for example "View sites on the Internet".
   ///  The value should not be redundant with the values of Name and GenericName.
   ///  May be present on Types 1, 2, 3.
-  localestring? comment;
+  SpecificationLocaleString? comment;
   static const fieldComment = 'Comment';
 
   ///  Hidden should have been called Deleted.
@@ -438,7 +104,7 @@ class DesktopEntry with DesktopSpecificationSharedMixin {
   ///  (e.g. due to a renaming) - by letting make install install a file with
   ///  Hidden=true in it.
   ///  May be present on Types 1, 2, 3.
-  boolean? hidden;
+  SpecificationBoolean? hidden;
   static const fieldHidden = 'Hidden';
 
   ///  A list of strings identifying the desktop environments that should
@@ -456,10 +122,10 @@ class DesktopEntry with DesktopSpecificationSharedMixin {
   ///  usual way: with a semicolon. The same desktop name may not appear in
   ///  both OnlyShowIn and NotShowIn of a group.
   ///  May be present on Types 1, 2, 3.
-  List<string> onlyShowIn;
+  List<SpecificationString> onlyShowIn;
   static const fieldOnlyShowIn = 'OnlyShowIn';
 
-  List<string> notShowIn;
+  List<SpecificationString> notShowIn;
   static const fieldNotShowIn = 'NotShowIn';
 
   ///  A boolean value specifying if D-Bus activation is supported for this
@@ -471,7 +137,7 @@ class DesktopEntry with DesktopSpecificationSharedMixin {
   ///  for compatibility with implementations that do not understand the
   ///  DBusActivatable key.
   ///  No type specified.
-  boolean? dBusActivatable;
+  SpecificationBoolean? dBusActivatable;
   static const fieldDBusActivatable = 'DBusActivatable';
 
   ///  Path to an executable file on disk used to determine if the program is
@@ -480,44 +146,44 @@ class DesktopEntry with DesktopSpecificationSharedMixin {
   ///  If the file is not present or if it is not executable, the entry may
   ///  be ignored (not be used in menus, for example).
   ///  May be present on Type 1.
-  string? tryExec;
+  SpecificationString? tryExec;
   static const fieldTryExec = 'TryExec';
 
   ///  If entry is of type Application, the working directory to run the
   ///  program in.
   ///  May be present on Type 1.
-  string? path;
+  SpecificationString? path;
   static const fieldPath = 'Path';
 
   ///  Whether the program runs in a terminal window.
   ///  May be present on Type 1.
-  boolean? terminal;
+  SpecificationBoolean? terminal;
   static const fieldTerminal = 'Terminal';
 
   ///  Identifiers for application actions. This can be used to tell the
   ///  application to make a specific action, different from the default
   ///  behavior. The Application actions section describes how actions work.
   ///  May be present on Type 1.
-  List<DesktopAction> actions;
+  List<SpecificationString> actions;
   static const fieldActions = 'Actions';
 
   ///  The MIME type(s) supported by this application.
   ///  May be present on Type 1.
-  List<string> mimeType;
+  List<SpecificationString> mimeType;
   static const fieldMimeType = 'MimeType';
 
   ///  Categories in which the entry should be shown in a menu
   ///  (for possible values see the Desktop Menu Specification).
   ///  https://www.freedesktop.org/wiki/Specifications/menu-spec/
   ///  May be present on Type 1.
-  List<string> categories;
+  List<SpecificationString> categories;
   static const fieldCategories = 'Categories';
 
   ///  A list of interfaces that this application implements.
   ///  By default, a desktop file implements no interfaces.
   ///  See Interfaces for more information on how this works.
   ///  No type specified.
-  List<string> implements;
+  List<SpecificationString> implements;
   static const fieldImplements = 'Implements';
 
   ///  A list of strings which may be used in addition to other metadata to
@@ -525,7 +191,7 @@ class DesktopEntry with DesktopSpecificationSharedMixin {
   ///  through entries. The values are not meant for display, and should not
   ///  be redundant with the values of Name or GenericName.
   ///  May be present on Type 1.
-  List<localestring> keywords;
+  late LocalisableSpecificationTypeList<SpecificationLocaleString> keywords;
   static const fieldKeywords = 'Keywords';
 
   ///  If true, it is KNOWN that the application will send a "remove" message
@@ -536,19 +202,19 @@ class DesktopEntry with DesktopSpecificationSharedMixin {
   ///  implementations (assuming false, using StartupWMClass, etc.).
   ///  (See the Startup Notification Protocol Specification for more details).
   ///  May be present on Type 1.
-  boolean? startupNotify;
+  SpecificationBoolean? startupNotify;
   static const fieldStartupNotify = 'StartupNotify';
 
   ///  If specified, it is known that the application will map at least one
   ///  window with the given string as its WM class or WM name hint
   ///  (see the Startup Notification Protocol Specification for more details).
   ///  May be present on Type 1.
-  string? startupWmClass;
+  SpecificationString? startupWmClass;
   static const fieldStartupWmClass = 'StartupWMClass';
 
   ///  If entry is Link type, the URL to access.
   ///  Must be present on Type 2.
-  string? url;
+  SpecificationString? url;
   static const fieldUrl = 'URL';
 
   ///  If true, the application prefers to be run on a more powerful discrete
@@ -558,7 +224,7 @@ class DesktopEntry with DesktopSpecificationSharedMixin {
   ///  default GPU. This key is only a hint and support might not be present
   ///  depending on the implementation.
   ///  May be present on Type 1.
-  boolean? prefersNonDefaultGpu;
+  SpecificationBoolean? prefersNonDefaultGpu;
   static const fieldPrefersNonDefaultGpu = 'PrefersNonDefaultGPU';
 
   ///  If true, the application has a single main window, and does not support
@@ -567,7 +233,7 @@ class DesktopEntry with DesktopSpecificationSharedMixin {
   ///  app. This key is only a hint and support might not be present depending
   ///  on the implementation.
   ///  May be present on Type 1.
-  boolean? singleMainWindow;
+  SpecificationBoolean? singleMainWindow;
   static const fieldSingleMainWindow = 'SingleMainWindow';
 
   @override
@@ -600,84 +266,6 @@ class DesktopEntry with DesktopSpecificationSharedMixin {
         singleMainWindow == other.singleMainWindow;
   }
 
-  compareWith(DesktopEntry other) {
-    if (type != other.type) {
-      throw Exception('$fieldType: LHS: $type, RHS: ${other.type}');
-    }
-    if (version != other.version) {
-      throw Exception('$fieldVersion: LHS: $version, RHS: ${other.version}');
-    }
-    if (name != other.name) {
-      throw Exception('${DesktopSpecificationSharedMixin.fieldName}: LHS: $name, RHS: ${other.name}');
-    }
-    if (genericName != other.genericName) {
-      throw Exception('$fieldGenericName: LHS: $genericName, RHS: ${other.genericName}');
-    }
-    if (noDisplay != other.noDisplay) {
-      throw Exception('$fieldNoDisplay: LHS: $noDisplay, RHS: ${other.noDisplay}');
-    }
-    if (comment != other.comment) {
-      throw Exception('$fieldComment: LHS: $comment, RHS: ${other.comment}');
-    }
-    if (icon != other.icon) {
-      throw Exception('${DesktopSpecificationSharedMixin.fieldIcon}: LHS: $icon, RHS: ${other.icon}');
-    }
-    if (hidden != other.hidden) {
-      throw Exception('$fieldHidden: LHS: $hidden, RHS: ${other.hidden}');
-    }
-    if (const ListEquality().equals(onlyShowIn, other.onlyShowIn) == false) {
-      throw Exception('$fieldOnlyShowIn: LHS: ${onlyShowIn.map((e) => e.value)}, RHS: ${onlyShowIn.map((e) => e.value)}');
-    }
-    if (const ListEquality().equals(notShowIn, other.notShowIn) == false) {
-      throw Exception('$fieldNotShowIn: LHS: ${notShowIn.map((e) => e.value)}, RHS: ${notShowIn.map((e) => e.value)}');
-    }
-    if (dBusActivatable != other.dBusActivatable) {
-      throw Exception('$fieldDBusActivatable: LHS: $dBusActivatable, RHS: ${other.dBusActivatable}');
-    }
-    if (tryExec != other.tryExec) {
-      throw Exception('$fieldTryExec: LHS: $tryExec, RHS: ${other.tryExec}');
-    }
-    if (exec != other.exec) {
-      throw Exception('${DesktopSpecificationSharedMixin.fieldExec}: LHS: $exec, RHS: ${other.exec}');
-    }
-    if (path != other.path) {
-      throw Exception('$fieldPath: LHS: $path, RHS: ${other.path}');
-    }
-    if (terminal != other.terminal) {
-      throw Exception('$fieldTerminal: LHS: $terminal, RHS: ${other.terminal}');
-    }
-    if (const ListEquality().equals(actions, other.actions) == false) {
-      throw Exception('$fieldActions: LHS: ${actions.map((e) => e.hashCode)}, RHS: ${other.actions.map((e) => e.hashCode)}');
-    }
-    if (const ListEquality().equals(mimeType, other.mimeType) == false) {
-      throw Exception('$fieldMimeType: LHS: ${mimeType.map((e) => e.value)}, RHS: ${other.mimeType.map((e) => e.value)}');
-    }
-    if (const ListEquality().equals(categories, other.categories) == false) {
-      throw Exception('$fieldCategories: LHS: ${categories.map((e) => e.value)}, RHS: ${other.categories.map((e) => e.value)}');
-    }
-    if (const ListEquality().equals(implements, other.implements) == false) {
-      throw Exception('$fieldImplements: LHS: ${implements.map((e) => e.value)}, RHS: ${other.implements.map((e) => e.value)}');
-    }
-    if (const ListEquality().equals(keywords, other.keywords) == false) {
-      throw Exception('$fieldKeywords: LHS: ${keywords.map((e) => e.value)}, RHS: ${other.keywords.map((e) => e.value)}');
-    }
-    if (startupNotify != other.startupNotify) {
-      throw Exception('$fieldStartupNotify: LHS: $startupNotify, RHS: ${other.startupNotify}');
-    }
-    if (startupWmClass != other.startupWmClass) {
-      throw Exception('$fieldStartupWmClass: LHS: $startupWmClass, RHS: ${other.startupWmClass}');
-    }
-    if (url != other.url) {
-      throw Exception('$fieldUrl: LHS: $url, RHS: ${other.url}');
-    }
-    if (prefersNonDefaultGpu != other.prefersNonDefaultGpu) {
-      throw Exception('$fieldPrefersNonDefaultGpu: LHS: $prefersNonDefaultGpu, RHS: ${other.prefersNonDefaultGpu}');
-    }
-    if (singleMainWindow != other.singleMainWindow) {
-      throw Exception('$fieldSingleMainWindow: LHS: $singleMainWindow, RHS: ${other.singleMainWindow}');
-    }
-  }
-
   @override
   int get hashCode =>
       type.hashCode ^
@@ -705,4 +293,239 @@ class DesktopEntry with DesktopSpecificationSharedMixin {
       url.hashCode ^
       prefersNonDefaultGpu.hashCode ^
       singleMainWindow.hashCode;
+
+  // To
+  DesktopEntry copyWith({
+    DesktopGroup? groupName,
+    SpecificationString? type,
+    SpecificationString? version,
+    SpecificationLocaleString? name,
+    SpecificationLocaleString? genericName,
+    SpecificationBoolean? noDisplay,
+    SpecificationLocaleString? comment,
+    SpecificationIconString? icon,
+    SpecificationBoolean? hidden,
+    List<SpecificationString>? onlyShowIn,
+    List<SpecificationString>? notShowIn,
+    SpecificationBoolean? dBusActivatable,
+    SpecificationString? tryExec,
+    SpecificationString? exec,
+    SpecificationString? path,
+    SpecificationBoolean? terminal,
+    List<SpecificationString>? actions,
+    List<SpecificationString>? mimeType,
+    List<SpecificationString>? categories,
+    List<SpecificationString>? implements,
+    LocalisableSpecificationTypeList<SpecificationLocaleString>? keywords,
+    SpecificationBoolean? startupNotify,
+    SpecificationString? startupWmClass,
+    SpecificationString? url,
+    SpecificationBoolean? prefersNonDefaultGpu,
+    SpecificationBoolean? singleMainWindow,
+  }) {
+    return DesktopEntry(
+      group: groupName ?? this.group.copyWith(),
+      type: type ?? this.type.copyWith(),
+      version: version ?? this.version?.copyWith(),
+      name: name ?? this.name.copyWith(),
+      genericName: genericName ?? this.genericName?.copyWith(),
+      noDisplay: noDisplay ?? this.noDisplay?.copyWith(),
+      comment: comment ?? this.comment?.copyWith(),
+      icon: icon ?? this.icon?.copyWith(),
+      hidden: hidden ?? this.hidden?.copyWith(),
+      onlyShowIn: List.of(onlyShowIn ?? this.onlyShowIn),
+      notShowIn: List.of(notShowIn ?? this.notShowIn),
+      dBusActivatable: dBusActivatable ?? this.dBusActivatable?.copyWith(),
+      tryExec: tryExec ?? this.tryExec?.copyWith(),
+      exec: exec ?? this.exec?.copyWith(),
+      path: path ?? this.path?.copyWith(),
+      terminal: terminal ?? this.terminal?.copyWith(),
+      actions: List.of(actions ?? this.actions),
+      mimeType: List.of(mimeType ?? this.mimeType),
+      categories: List.of(categories ?? this.categories),
+      implements: List.of(implements ?? this.implements),
+      keywords: keywords ?? this.keywords.copyWith(),
+      startupNotify: startupNotify ?? this.startupNotify?.copyWith(),
+      url: url ?? this.url?.copyWith(),
+      prefersNonDefaultGpu: prefersNonDefaultGpu ?? this.prefersNonDefaultGpu?.copyWith(),
+      singleMainWindow: singleMainWindow ?? this.singleMainWindow?.copyWith()
+    );
+  }
+  static Map<String, dynamic> toData(DesktopEntry entry) {
+    return <String, dynamic> {
+      fieldType: entry.type.copyWith(),
+      if (entry.version is SpecificationString) fieldVersion: entry.version!.copyWith(),
+      DesktopSpecificationSharedMixin.fieldName: entry.name.copyWith(),
+      if (entry.genericName is SpecificationLocaleString) fieldGenericName: entry.genericName!.copyWith(),
+      if (entry.noDisplay is SpecificationBoolean) fieldNoDisplay: entry.noDisplay!.copyWith(),
+      if (entry.comment is SpecificationLocaleString) fieldComment: entry.comment!.copyWith(),
+      if (entry.icon is SpecificationIconString) DesktopSpecificationSharedMixin.fieldIcon: entry.icon!.copyWith(),
+      if (entry.hidden is SpecificationBoolean) fieldHidden: entry.hidden!.copyWith(),
+      if (entry.onlyShowIn.isNotEmpty) fieldOnlyShowIn: List.of(entry.onlyShowIn),
+      if (entry.notShowIn.isNotEmpty) fieldNotShowIn: List.of(entry.notShowIn),
+      if (entry.dBusActivatable is SpecificationBoolean) fieldDBusActivatable: entry.dBusActivatable!.copyWith(),
+      if (entry.tryExec is SpecificationString) fieldTryExec: entry.tryExec!.copyWith(),
+      if (entry.exec is SpecificationString) DesktopSpecificationSharedMixin.fieldExec: entry.exec!.copyWith(),
+      if (entry.path is SpecificationString) fieldPath: entry.path!.copyWith(),
+      if (entry.terminal is SpecificationBoolean) fieldTerminal: entry.terminal!.copyWith(),
+      if (entry.actions.isNotEmpty) fieldActions: List.of(entry.actions),
+      if (entry.mimeType.isNotEmpty) fieldMimeType: List.of(entry.mimeType),
+      if (entry.categories.isNotEmpty) fieldCategories: List.of(entry.categories),
+      if (entry.implements.isNotEmpty) fieldImplements: List.of(entry.implements),
+      if (entry.keywords.isNotEmpty) fieldKeywords: List.of(entry.keywords),
+      if (entry.startupNotify is SpecificationBoolean) fieldStartupNotify: entry.startupNotify!.copyWith(),
+      if (entry.startupWmClass is SpecificationString) fieldStartupWmClass: entry.startupWmClass!.copyWith(),
+      if (entry.url is SpecificationString) fieldUrl: entry.url,
+      if (entry.prefersNonDefaultGpu is SpecificationBoolean) fieldPrefersNonDefaultGpu: entry.prefersNonDefaultGpu,
+      if (entry.singleMainWindow is SpecificationBoolean) fieldSingleMainWindow: entry.singleMainWindow
+    };
+  }
+
+  @override
+  writeToFile(File file) {
+    group.writeToFile(file);
+    type.writeToFile(file, key: fieldType);
+    version?.writeToFile(file, key: fieldVersion);
+    name.writeToFile(file, key: DesktopSpecificationSharedMixin.fieldName);
+    genericName?.writeToFile(file, key: fieldGenericName);
+    noDisplay?.writeToFile(file, key: fieldNoDisplay);
+    comment?.writeToFile(file, key: fieldComment);
+    icon?.writeToFile(file, key: DesktopSpecificationSharedMixin.fieldIcon);
+    hidden?.writeToFile(file, key: fieldHidden);
+
+    if (onlyShowIn.isNotEmpty) {
+      final onlyShowInComments = onlyShowIn.map((e) => e.comments)
+        .fold(<String>[], (previousValue, element) => [...previousValue, ...element])
+        .map((e) => buildComment(e))
+        .toList(growable: false);
+
+      for (var comment in onlyShowInComments) {
+        file.writeAsStringSync(comment);
+      }
+
+      final onlyShowInValues = onlyShowIn.map((e) => e.value).toList(growable: false);
+      final onlyShowInLine = buildListLine(fieldOnlyShowIn, onlyShowInValues);
+      file.writeAsStringSync(onlyShowInLine);
+    }
+    if (notShowIn.isNotEmpty) {
+      final notShowInComments = notShowIn.map((e) => e.comments)
+          .fold(<String>[], (previousValue, element) => [...previousValue, ...element])
+          .map((e) => buildComment(e))
+          .toList(growable: false);
+
+      for (var comment in notShowInComments) {
+        file.writeAsStringSync(comment);
+      }
+
+      final notShowInValues = notShowIn.map((e) => e.value).toList(growable: false);
+      final notShowInLine = buildListLine(fieldNotShowIn, notShowInValues);
+      file.writeAsStringSync(notShowInLine);
+    }
+
+    dBusActivatable?.writeToFile(file, key: fieldDBusActivatable);
+    tryExec?.writeToFile(file, key: fieldTryExec);
+    exec?.writeToFile(file, key: DesktopSpecificationSharedMixin.fieldExec);
+    path?.writeToFile(file, key: fieldPath);
+    terminal?.writeToFile(file, key: fieldTerminal);
+
+    if (actions.isNotEmpty) {
+      final actionComments = actions.map((e) => e.comments)
+          .fold(<String>[], (previousValue, element) => [...previousValue, ...element])
+          .map((e) => buildComment(e))
+          .toList(growable: false);
+
+      for (var comment in actionComments) {
+        file.writeAsStringSync(comment);
+      }
+
+      final actionValues = actions.map((e) => e.value).toList(growable: false);
+      final actionLine = buildListLine(fieldActions, actionValues);
+      file.writeAsStringSync(actionLine);
+    }
+
+    if (mimeType.isNotEmpty) {
+      final mimeTypeComments = mimeType.map((e) => e.comments)
+          .fold(<String>[], (previousValue, element) => [...previousValue, ...element])
+          .map((e) => buildComment(e))
+          .toList(growable: false);
+
+      for (var comment in mimeTypeComments) {
+        file.writeAsStringSync(comment);
+      }
+
+      final mimeTypeValues = mimeType.map((e) => e.value).toList(growable: false);
+      final mimeTypeLine = buildListLine(fieldMimeType, mimeTypeValues);
+      file.writeAsStringSync(mimeTypeLine);
+    }
+
+    if (categories.isNotEmpty) {
+      final categoriesComments = categories.map((e) => e.comments)
+          .fold(<String>[], (previousValue, element) => [...previousValue, ...element])
+          .map((e) => buildComment(e))
+          .toList(growable: false);
+
+      for (var comment in categoriesComments) {
+        file.writeAsStringSync(comment);
+      }
+
+      final categoriesValues = categories.map((e) => e.value).toList(growable: false);
+      final categoriesLine = buildListLine(fieldCategories, categoriesValues);
+      file.writeAsStringSync(categoriesLine);
+    }
+
+    if (implements.isNotEmpty) {
+      final implementsComments = implements.map((e) => e.comments)
+          .fold(<String>[], (previousValue, element) => [...previousValue, ...element])
+          .map((e) => buildComment(e))
+          .toList(growable: false);
+
+      for (var comment in implementsComments) {
+        file.writeAsStringSync(comment);
+      }
+
+      final implementsValues = implements.map((e) => e.value).toList(growable: false);
+      final implementsLine = buildListLine(fieldImplements, implementsValues);
+      file.writeAsStringSync(implementsLine);
+    }
+
+    keywords.writeToFile(file);
+
+    startupNotify?.writeToFile(file, key: fieldStartupNotify);
+    startupWmClass?.writeToFile(file, key: fieldStartupWmClass);
+    url?.writeToFile(file, key: fieldUrl);
+    prefersNonDefaultGpu?.writeToFile(file, key: fieldPrefersNonDefaultGpu);
+    singleMainWindow?.writeToFile(file, key: fieldSingleMainWindow);
+  }
+
+  // From
+  factory DesktopEntry.fromMap(Map<String, dynamic> map) {
+    return DesktopEntry(
+      group: map[GroupMixin.fieldGroup],
+      type: map[fieldType],
+      version: map[fieldVersion],
+      name: map[DesktopSpecificationSharedMixin.fieldName],
+      genericName: map[fieldGenericName],
+      noDisplay: map[fieldNoDisplay],
+      comment: map[fieldComment],
+      icon: map[DesktopSpecificationSharedMixin.fieldIcon],
+      hidden: map[fieldHidden],
+      onlyShowIn: map[fieldOnlyShowIn] ?? <SpecificationString>[],
+      notShowIn: map[fieldNotShowIn] ?? <SpecificationString>[],
+      dBusActivatable: map[fieldDBusActivatable],
+      tryExec: map[fieldTryExec],
+      exec: map[DesktopSpecificationSharedMixin.fieldExec],
+      path: map[fieldPath],
+      terminal: map[fieldTerminal],
+      actions: map[fieldActions] ?? <SpecificationString>[],
+      mimeType: map[fieldMimeType] ?? <SpecificationString>[],
+      categories: map[fieldCategories] ?? <SpecificationString>[],
+      implements: map[fieldImplements] ?? <SpecificationString>[],
+      keywords: map[fieldKeywords],
+      startupNotify: map[fieldStartupNotify],
+      startupWmClass: map[fieldStartupWmClass],
+      url: map[fieldUrl],
+      prefersNonDefaultGpu: map[fieldPrefersNonDefaultGpu],
+      singleMainWindow: map[fieldSingleMainWindow],
+    );
+  }
 }

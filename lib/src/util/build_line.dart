@@ -16,8 +16,14 @@ buildListLine(String key, List<String> values) {
 
 buildLine(String key, [String? value]) {
   if (value is! String) {
-    return '$key\n';
+    return '${key.trimRight()}\n';
   }
 
-  return '$key=$value\n';
+  return '$key=${value.trimRight()}\n';
+}
+
+const commentChar = '#';
+
+buildComment(String content) {
+  return buildLine('$commentChar $content');
 }

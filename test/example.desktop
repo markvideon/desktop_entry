@@ -1,5 +1,6 @@
 [Desktop Entry]
 Version=1.0
+UnknownKey=UnknownValue
 Type=Application
 Name=Foo Viewer
 Comment=The best viewer for Foo objects available!
@@ -8,6 +9,13 @@ Exec=fooview %u
 Icon=fooview
 MimeType=image/x-foo;x-scheme-handler/fooview;
 Actions=Gallery;Create;
+
+[UnknownGroup]
+UnknownGroup=Unknown Value
+
+[EmptyGroup]
+
+comment line above desktop action gallery
 
 [Desktop Action Gallery]
 Exec=fooview --gallery

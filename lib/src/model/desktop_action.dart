@@ -1,61 +1,76 @@
-import 'specification_types.dart';
-import 'shared_mixin.dart';
+import 'dart:io' if (dart.library.html) 'dart:html' show File;
 
-class DesktopAction with DesktopSpecificationSharedMixin {
+import '../model/mixin/unrecognised_entries_mixin.dart';
+
+import 'group_name.dart';
+import 'interface/write_to_file.dart';
+import 'mixin/group_mixin.dart';
+import 'mixin/shared_mixin.dart';
+import 'specification_types.dart';
+import 'unrecognised/unrecognised_entry.dart';
+
+class DesktopAction with DesktopSpecificationSharedMixin, GroupMixin, UnrecognisedEntriesMixin
+  implements FileWritable {
   DesktopAction({
-    required localestring actionName,
-    required this.entryKey,
-    iconstring? icon,
-    string? exec
+    required DesktopGroup group,
+    required SpecificationLocaleString name,
+    SpecificationIconString? icon,
+    SpecificationString? exec,
+    List<UnrecognisedEntry>? unrecognisedEntries
   }) {
-    name = actionName;
+    this.group = group;
+    this.name = name;
     this.icon = icon;
     this.exec = exec;
+    this.unrecognisedEntries = unrecognisedEntries ?? <UnrecognisedEntry>[];
   }
 
-  /// Key of type [string] used in the `Actions` field on a Desktop Entry
-  /// as well as the header for a [DesktopAction]
-  final string entryKey;
+  static final RegExp groupRegExp = RegExp(r'(Desktop Action )(\w+)');
 
-  static const fieldEntryKey = 'entryKey';
-
-  static String buildHeader(String entryKey) {
-    return '[Desktop Action $entryKey]';
-  }
-
-  String get header {
-    return buildHeader(name.value);
-  }
-
-  static Map<String, dynamic> toMap(DesktopAction action) {
+  // To
+  static Map<String, dynamic> toData(DesktopAction action) {
     return <String, dynamic> {
+      GroupMixin.fieldGroup: DesktopGroup.toData(action.group),
       DesktopSpecificationSharedMixin.fieldName: action.name.copyWith(),
-      DesktopAction.fieldEntryKey: action.entryKey.copyWith(),
-      if (action.icon is iconstring) DesktopSpecificationSharedMixin.fieldIcon: action.icon!.copyWith(),
-      if (action.exec is string) DesktopSpecificationSharedMixin.fieldExec: action.exec!.copyWith()
+      if (action.icon is SpecificationIconString) DesktopSpecificationSharedMixin.fieldIcon: action.icon!.copyWith(),
+      if (action.exec is SpecificationString) DesktopSpecificationSharedMixin.fieldExec: action.exec!.copyWith(),
+      if (action.unrecognisedEntries.isNotEmpty) UnrecognisedEntriesMixin.fieldEntries: List.of(action.unrecognisedEntries)
     };
   }
 
+  @override
+  writeToFile(File file) {
+    group.writeToFile(file, clearFile: false);
+    name.writeToFile(file);
+    icon?.writeToFile(file);
+    exec?.writeToFile(file);
+    // todo: Write unrecognised entries
+    for (var unrecognisedEntry in unrecognisedEntries) {
+      unrecognisedEntry.writeToFile(file);
+    }
+  }
+
+  // From
   factory DesktopAction.fromMap(Map<String, dynamic> map) {
     return DesktopAction(
-        actionName: map[DesktopSpecificationSharedMixin.fieldName],
-        entryKey: map[fieldEntryKey],
-        icon: map[DesktopSpecificationSharedMixin.fieldIcon],
-        exec: map[DesktopSpecificationSharedMixin.fieldExec]
+      group: DesktopGroup.fromMap(map[GroupMixin.fieldGroup]),
+      name: map[DesktopSpecificationSharedMixin.fieldName],
+      icon: map[DesktopSpecificationSharedMixin.fieldIcon],
+      exec: map[DesktopSpecificationSharedMixin.fieldExec]
     );
   }
 
   DesktopAction copyWith({
-    localestring? actionName,
-    string? entryKey,
-    iconstring? icon,
-    string? exec
+    SpecificationLocaleString? name,
+    DesktopGroup? group,
+    SpecificationIconString? icon,
+    SpecificationString? exec
   }) {
     return DesktopAction(
-        actionName: actionName ?? name,
-        entryKey: entryKey?? this.entryKey,
-        icon: icon ?? this.icon,
-        exec: exec ?? this.exec
+      name: name ?? this.name,
+      group: group ?? this.group,
+      icon: icon ?? this.icon,
+      exec: exec ?? this.exec
     );
   }
 
@@ -63,14 +78,14 @@ class DesktopAction with DesktopSpecificationSharedMixin {
   bool operator ==(Object other) {
     return other is DesktopAction &&
         name == other.name &&
-        entryKey == other.entryKey &&
+        group == other.group &&
         icon == other.icon &&
         exec == other.exec;
   }
 
   @override
   int get hashCode => name.hashCode ^
-  entryKey.hashCode ^
+  group.hashCode ^
   icon.hashCode ^
   exec.hashCode;
 }

@@ -1,18 +1,18 @@
-import 'specification_types.dart';
+import '../specification_types.dart';
 
 mixin DesktopSpecificationSharedMixin {
   ///  Specific name of the application, for example "Mozilla".
   ///  Must be present on Types 1, 2, 3.
-  late localestring name;
+  late SpecificationLocaleString name;
   static const fieldName = 'Name';
-  Map<String, localestring>? namesByLocale;
+  Map<String, SpecificationLocaleString>? namesByLocale;
 
   ///  Icon to display in file manager, menus, etc.
   ///  If the name is an absolute path, the given file will be used.
   ///  If the name is not an absolute path, the algorithm described in the
   ///  Icon Theme Specification will be used to locate the icon.
   ///  May be present on Types 1, 2, 3.
-  iconstring? icon;
+  SpecificationIconString? icon;
   static const fieldIcon = 'Icon';
 
   ///  Program to execute, possibly with arguments.
@@ -22,10 +22,6 @@ mixin DesktopSpecificationSharedMixin {
   ///  compatibility with implementations that do not understand
   ///  DBusActivatable.
   ///  May be present on Type 1.
-  string? exec;
+  SpecificationString? exec;
   static const fieldExec = 'Exec';
-}
-
-mixin SupportsLocalisationMixin<T> {
-  late Map<String, T> localisedValues;
 }

@@ -34,23 +34,22 @@ List<String> parseRow(String input, String delimiter) {
   return parts;
 }
 
+final _parseKeyValueRegExp = RegExp(r'(\w+)=(.+)');
+
 MapEntry<String, dynamic>? parseLine(String line) {
   String effectiveLine = line.trim();
 
-  final equalsIdx = effectiveLine.indexOf('=');
-  if (equalsIdx.isNegative) {
+  final match = _parseKeyValueRegExp.firstMatch(effectiveLine);
+
+  if (match == null || match.group(1) == null || match.group(2) == null) {
     return null;
   }
 
-  final value = effectiveLine.substring(equalsIdx + 1);
-  if (value.isEmpty) {
-    return null;
-  }
-  final key = effectiveLine.substring(0, equalsIdx).trim();
+  final possibleMultipleValues = parseRow(match.group(2)!, ';');
 
-  final effectiveValue = parseRow(value, ';');
-
-  // Note that fields that support multiple values contain `;` even when only
-  // one value is specified.
-  return MapEntry(key, value.contains(';') ? effectiveValue : effectiveValue.first);
+  return MapEntry(
+      match.group(1)!,
+      possibleMultipleValues.length == 1 ?
+      possibleMultipleValues.first :
+      possibleMultipleValues);
 }

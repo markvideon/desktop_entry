@@ -1,11 +1,75 @@
 import 'dart:developer' show log;
-import 'dart:io' show File;
+import 'dart:io' if (dart.library.html) 'dart:html' show File;
 
 import 'package:desktop_entry/desktop_entry.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:path/path.dart';
 
 final pathContext = Context(style: Style.posix);
+
+final manualDefinitionExample = DesktopContents(
+  entry: DesktopEntry(
+    group: DesktopGroup('Desktop Entry'),
+    version: SpecificationString('1.0'),
+    unrecognisedEntries: <UnrecognisedEntry>[
+      UnrecognisedEntry(key: 'UnknownKey', values: ['UnknownValue'])
+    ],
+    type: SpecificationString('Application'),
+    name: SpecificationLocaleString('Foo Viewer'),
+    comment: SpecificationLocaleString('The best viewer for Foo objects available!'),
+    tryExec: SpecificationString('fooview'),
+    exec: SpecificationString('fooview %u'),
+    icon: SpecificationIconString('fooview'),
+    mimeType: <SpecificationString>[
+      SpecificationString('image/x-foo'),
+      SpecificationString('x-scheme-hander/fooview'),
+    ],
+    actions: <SpecificationString>[
+      SpecificationString('Gallery'),
+      SpecificationString('Create')
+    ]
+  ),
+  unrecognisedGroups: <UnrecognisedGroup>[
+    UnrecognisedGroup(
+      group: DesktopGroup('UnknownGroup'),
+      entries: <UnrecognisedEntry>[
+        UnrecognisedEntry(key: 'UnknownGroup', values: ['Unknown Value'])
+      ]
+    ),
+    UnrecognisedGroup(
+      group: DesktopGroup('EmptyGroup'),
+      entries: <UnrecognisedEntry>[
+
+      ]
+    ),
+  ],
+  actions: <DesktopAction>[
+    DesktopAction(
+      group: DesktopGroup(
+        'Desktop Action Gallery',
+        comments: ['', 'comment line above desktop action gallery', '']
+      ),
+      exec: SpecificationString('fooview --gallery'),
+      name: SpecificationLocaleString('Browse Gallery'),
+    ),
+    DesktopAction(
+      group: DesktopGroup(
+        'Desktop Action Create'
+      ),
+      exec: SpecificationString('fooview --create-new'),
+      name: SpecificationLocaleString('Create a new Foo!'),
+      icon: SpecificationIconString('fooview-new')
+    )
+  ],
+  trailingComments: <String>[]
+);
+/*
+final firefoxDefinition = DesktopContents(
+  entry: entry,
+  actions: actions,
+  unrecognisedGroups: unrecognisedGroups,
+  trailingComments: trailingComments
+);*/
 
 void main() async {
   test('Install Desktop Entry - Existing', () async {
@@ -26,116 +90,36 @@ void main() async {
     expect(await file.exists(), true);
   });
 
-  test('Map Parsed Successfully', () async {
-    DesktopEntry manualDefinition = DesktopEntry(
-      version: string('1.0'),
-      type: string('Application'),
-      entryName: localestring('Foo Viewer'),
-      comment: localestring('The best viewer for Foo objects available!'),
-      tryExec: string('fooview'),
-      exec: string('fooview %F'),
-      icon: iconstring('fooview'),
-      mimeType: <string>[
-        string('image/x-foo')
-      ],
-      actions: <DesktopAction>[
-        DesktopAction(
-          entryKey: string('Gallery'),
-          actionName: localestring('Browse Gallery'),
-          exec: string('fooview --gallery')
-        ),
-        DesktopAction(
-          entryKey: string('Create'),
-          actionName: localestring('Create a new Foo!'),
-          exec: string('fooview --create-new'),
-          icon: iconstring('fooview-new')
-        )
-      ]
-    );
-
-    DesktopEntry copyFromMap = DesktopEntry.fromMap(DesktopEntry.toMap(manualDefinition));
-    expect(manualDefinition == copyFromMap, true);
+  test('Manual Definition Serialised Then Parsed Successfully', () async {
+    DesktopContents copyFromMap = DesktopContents.fromMap(DesktopContents.toData(manualDefinitionExample));
+    expect(manualDefinitionExample == copyFromMap, true);
   });
 
-  test('Example Entry Written Then Read Correctly', () async {
-    DesktopEntry manualDefinition = DesktopEntry(
-        version: string('1.0'),
-        type: string('Application'),
-        entryName: localestring('Foo Viewer'),
-        comment: localestring('The best viewer for Foo objects available!'),
-        tryExec: string('fooview'),
-        exec: string('fooview %F'),
-        icon: iconstring('fooview'),
-        mimeType: <string>[
-          string('image/x-foo')
-        ],
-        actions: <DesktopAction>[
-          DesktopAction(
-            entryKey: string('Gallery'),
-            actionName: localestring('Browse Gallery'),
-            exec: string('fooview --gallery')
-          ),
-          DesktopAction(
-            entryKey: string('Create'),
-            actionName: localestring('Create a new Foo!'),
-            exec: string('fooview --create-new'),
-            icon: iconstring('fooview-new')
-          )
-        ]
-    );
+  test('`example.desktop` Entry Written Then Read Correctly', () async {
 
-    final file = await DesktopEntry.toFile('test', manualDefinition);
-    final parsedDefinition = DesktopEntry.fromFile(file);
+    final file = await DesktopContents.toFile('test', manualDefinitionExample);
+    final parsedDefinition = DesktopContents.fromFile(file);
 
-    expect(manualDefinition == parsedDefinition, true);
+    expect(manualDefinitionExample == parsedDefinition, true);
 
     file.deleteSync();
     expect(file.existsSync(), false);
   });
 
-  test('Example File Parsed Successfully', () async {
+  test('`example.desktop` Parsed Successfully', () async {
+    log('ayo?');
     const existingPath = 'test/example.desktop';
     final file = File(existingPath);
 
-    DesktopEntry? entryFromFile;
+    DesktopContents? entryFromFile;
 
     try {
-      entryFromFile = DesktopEntry.fromFile(file);
+      entryFromFile = DesktopContents.fromFile(file);
     } catch (error) {
       log('$error');
     }
 
-    // Assumes that this definition matches the contents of [example.desktop]
-    DesktopEntry manualDefinition = DesktopEntry(
-      version: string('1.0'),
-      type: string('Application'),
-      entryName: localestring('Foo Viewer'),
-      comment: localestring('The best viewer for Foo objects available!'),
-      tryExec: string('fooview'),
-      exec: string('fooview %u'),
-      icon: iconstring('fooview'),
-      mimeType: <string>[
-        string('image/x-foo'),
-        string('x-scheme-handler/fooview')
-      ],
-      actions: <DesktopAction>[
-        DesktopAction(
-          entryKey: string('Gallery'),
-          actionName: localestring('Browse Gallery'),
-          exec: string('fooview --gallery')
-        ),
-        DesktopAction(
-          entryKey: string('Create'),
-          actionName: localestring('Create a new Foo!'),
-          exec: string('fooview --create-new'),
-          icon: iconstring('fooview-new')
-        )
-      ]
-    );
-
-    manualDefinition.compareWith(entryFromFile!);
-
-    expect(manualDefinition == entryFromFile, true);
+    expect(compareMaps(DesktopContents.toData(entryFromFile!), DesktopContents.toData(manualDefinitionExample)), true);
   });
 
   test('Uninstall Desktop Entry', () async {

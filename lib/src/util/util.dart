@@ -1,5 +1,32 @@
 import 'dart:developer';
+import 'dart:io' show ProcessResult;
 import 'package:collection/collection.dart';
+
+logProcessStdOut(ProcessResult processResult) {
+  if (processResult.stdout is List<int>) {
+    final messageBytes = processResult.stdout as List<int>;
+    if (messageBytes.isNotEmpty) {
+      log(String.fromCharCodes(messageBytes));
+    }
+  } else if (processResult.stdout is String) {
+    log(processResult.stdout);
+  }
+}
+
+checkProcessStdErr(ProcessResult processResult) {
+  if (processResult.stderr is List<int>) {
+    final errorMessageBytes = processResult.stderr as List<int>;
+    if (errorMessageBytes.isNotEmpty) {
+      throw Exception(String.fromCharCodes(errorMessageBytes));
+    }
+  } else if (processResult.stderr is String) {
+    final errorMessageString = processResult.stderr.toString().trim();
+
+    if (errorMessageString.isNotEmpty) {
+      throw Exception(processResult.stderr);
+    }
+  }
+}
 
 bool stringToBool(String candidate) {
   return candidate.trim().toLowerCase() == 'true';

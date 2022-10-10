@@ -1,0 +1,9 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="Uninstall Desktop Entry - Existing" type="FlutterTestConfigType" factoryName="Flutter Test">
+    <option name="testName" value="Uninstall Desktop Entry - Existing" />
+    <option name="testFile" value="$PROJECT_DIR$/test/desktop_entry_test.dart" />
+    <option name="useRegexp" value="false" />
+    <option name="additionalArgs" value="--verbose" />
+    <method v="2" />
+  </configuration>
+</component>

@@ -4,18 +4,23 @@ import '../model/desktop_contents.dart';
 import 'package:path/path.dart' show Context, Style;
 
 import '../const.dart';
+import '../util/util.dart';
 
-Future<String> installFromMemory({required DesktopContents contents, required String filename}) async {
+Future<String> installFromMemory({
+  required DesktopContents contents,
+  required String filename,
+  required String installationPath
+}) async {
   // Deliberate decision not to throw errors based on runtime platform at this time.
   if (Platform.isLinux == false) {
     return '';
   }
 
   final file = await DesktopContents.toFile(filename, contents);
-  return installFromFile(file);
+  return installFromFile(file, installationDirectoryPath: installationPath);
 }
 
-Future<String> installFromFile(File file, {String? overrideInstallationDirectoryPath}) async {
+Future<String> installFromFile(File file, {required String installationDirectoryPath}) async {
   // Deliberate decision not to throw errors based on runtime platform at this time.
   if (Platform.isLinux == false) {
     return '';
@@ -24,8 +29,9 @@ Future<String> installFromFile(File file, {String? overrideInstallationDirectory
   if (!file.existsSync()) {
     throw const FileSystemException('File not found');
   }
-  final appliedDestinationDirectoryPath = overrideInstallationDirectoryPath ?? allUsersDesktopEntryInstallationDirectoryPath;
-
+  final appliedDestinationDirectoryPath = installationDirectoryPath;
+  print('Installing from... ${file.path}');
+  print('Installing to... $appliedDestinationDirectoryPath');
   final fileInstall = await Process.run(
       'desktop-file-install',
       [
@@ -34,6 +40,8 @@ Future<String> installFromFile(File file, {String? overrideInstallationDirectory
       ],
       runInShell: true
   );
+
+  checkProcessStdErr(fileInstall);
 
   if (fileInstall.exitCode < 0) {
     throw Exception('Error code on installation: ${fileInstall.exitCode}');
@@ -45,6 +53,8 @@ Future<String> installFromFile(File file, {String? overrideInstallationDirectory
       runInShell: true
   );
 
+  checkProcessStdErr(updateDatabase);
+
   if (updateDatabase.exitCode < 0) {
     throw Exception('Error code on updateDatabase: ${updateDatabase.exitCode}');
   }
@@ -54,7 +64,7 @@ Future<String> installFromFile(File file, {String? overrideInstallationDirectory
   if (File(destinationFilePath).existsSync()) {
     return destinationFilePath;
   } else {
-    throw const FileSystemException('Installation failed');
+    throw FileSystemException('Installation failed.', destinationFilePath);
   }
 }
 
@@ -63,6 +73,10 @@ Future<void> uninstall(File file) async {
   if (Platform.isLinux == false) {
     return;
   }
+  if (!file.existsSync()) {
+    throw const FileSystemException('File did not exist');
+  }
+
   if (file.existsSync()) {
     file.deleteSync();
 

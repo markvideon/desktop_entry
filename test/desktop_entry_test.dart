@@ -1,8 +1,7 @@
-import 'dart:developer' show log;
-import 'dart:io' if (dart.library.html) 'dart:html' show File;
+import 'dart:io' if (dart.library.html) 'dart:html' show File, Platform;
 
 import 'package:desktop_entry/desktop_entry.dart';
-import 'package:flutter_test/flutter_test.dart';
+import 'package:test/test.dart';
 import 'package:path/path.dart';
 
 final pathContext = Context(style: Style.posix);
@@ -63,6 +62,7 @@ final manualDefinitionExample = DesktopContents(
   ],
   trailingComments: <String>[]
 );
+
 /*
 final firefoxDefinition = DesktopContents(
   entry: entry,
@@ -73,30 +73,52 @@ final firefoxDefinition = DesktopContents(
 
 void main() async {
   test('Install Desktop Entry - Existing', () async {
-    const filename = 'example.desktop';
+    const filename = 'example-success.desktop';
     const existingPath = 'test/$filename';
-    final file = File(existingPath);
+    final existingFile = File(existingPath);
 
-    final path = await installFromFile(file);
-    final destinationFile = File(path);
+    final pathContext = Context(style: Style.posix);
+    expect(
+      Platform.environment['HOME'] is String &&
+      (Platform.environment['HOME'] as String).isNotEmpty,
+      true);
+
+    print('Part 1: ${Platform.environment['HOME']}');
+    print('Part 2: $localUserDesktopEntryInstallationDirectoryPath');
+    final destinationFilePath = pathContext.join(Platform.environment['HOME']!, localUserDesktopEntryInstallationDirectoryPath);
+
+    await installFromFile(existingFile, installationDirectoryPath: destinationFilePath);
+
+    final destinationFile = File(destinationFilePath);
     expect(destinationFile.existsSync(), true);
+  });
+
+  test('Uninstall Desktop Entry - Existing', () async {
+    const filename = 'example-success.desktop';
+
+    final pathContext = Context(style: Style.posix);
+    final sourceFilePath = pathContext.join(
+        Platform.environment['HOME']!,
+        localUserDesktopEntryInstallationDirectoryPath,
+        filename);
+    final file = File(sourceFilePath);
+
+    expect(file.existsSync(), true);
+
+    await uninstall(filename);
+
+    expect(file.existsSync(), false);
   });
 
   test('Check Example File Exists', () async {
     // Path is relative to project root.
-    const existingPath = 'test/example.desktop';
+    const existingPath = 'test/example-fail.desktop';
     final file = File(existingPath);
 
     expect(await file.exists(), true);
   });
 
-  test('Manual Definition Serialised Then Parsed Successfully', () async {
-    DesktopContents copyFromMap = DesktopContents.fromMap(DesktopContents.toData(manualDefinitionExample));
-    expect(manualDefinitionExample == copyFromMap, true);
-  });
-
-  test('`example.desktop` Entry Written Then Read Correctly', () async {
-
+  test('`example-fail.desktop` Entry Written Then Read Correctly', () async {
     final file = await DesktopContents.toFile('test', manualDefinitionExample);
     final parsedDefinition = DesktopContents.fromFile(file);
 
@@ -105,27 +127,37 @@ void main() async {
     file.deleteSync();
     expect(file.existsSync(), false);
   });
+}
 
-  test('`example.desktop` Parsed Successfully', () async {
-    log('ayo?');
-    const existingPath = 'test/example.desktop';
-    final file = File(existingPath);
 
-    DesktopContents? entryFromFile;
+/*
+  Test Util functions
+*/
+/// Install the Desktop file at [projectRoot]/test/[filename]
+install(String filename, {File? file}) async {
+  final existingPath = 'test/$filename';
+  final existingFile = file ?? File(existingPath);
 
-    try {
-      entryFromFile = DesktopContents.fromFile(file);
-    } catch (error) {
-      log('$error');
-    }
+  final pathContext = Context(style: Style.posix);
+  final destinationFilePath = pathContext.join(Platform.environment['HOME']!, localUserDesktopEntryInstallationDirectoryPath, filename);
 
-    expect(compareMaps(DesktopContents.toData(entryFromFile!), DesktopContents.toData(manualDefinitionExample)), true);
-  });
+  await installFromFile(existingFile, installationDirectoryPath: destinationFilePath);
+}
 
-  test('Uninstall Desktop Entry', () async {
-    final file = File(allUsersDesktopEntryInstallationDirectoryPath);
-    await uninstall(file);
+/// Install the Desktop file at [projectRoot]/test/[filename]
+/// if it does not already exist.
+/// Uninstall the file.
+uninstall(String filename) async {
+  final pathContext = Context(style: Style.posix);
+  final installedPath = pathContext.join(
+      Platform.environment['HOME']!,
+      localUserDesktopEntryInstallationDirectoryPath,
+      filename);
+  final file = File(installedPath);
 
-    expect(file.existsSync(), false);
-  });
+  if (!file.existsSync()) {
+    await install(filename);
+  }
+
+  expect(file.existsSync(), false);
 }

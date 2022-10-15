@@ -9,8 +9,10 @@ environment:
 
 dependencies:
   collection: ^1.16.0
+  flutter_platform_alert: ^0.3.0
   path: ^1.8.2
   path_provider: ^2.0.10
+  xdg_directories: ^0.2.0+2
 
 dev_dependencies:
   flutter_test:

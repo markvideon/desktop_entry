@@ -1,5 +1,7 @@
 import 'dart:io' if (dart.library.html) 'dart:html' show File;
 
+import 'package:collection/collection.dart';
+
 import '../model/mixin/unrecognised_entries_mixin.dart';
 
 import 'group_name.dart';
@@ -44,7 +46,6 @@ class DesktopAction with DesktopSpecificationSharedMixin, GroupMixin, Unrecognis
     name.writeToFile(file);
     icon?.writeToFile(file);
     exec?.writeToFile(file);
-    // todo: Write unrecognised entries
     for (var unrecognisedEntry in unrecognisedEntries) {
       unrecognisedEntry.writeToFile(file);
     }
@@ -53,10 +54,11 @@ class DesktopAction with DesktopSpecificationSharedMixin, GroupMixin, Unrecognis
   // From
   factory DesktopAction.fromMap(Map<String, dynamic> map) {
     return DesktopAction(
-      group: DesktopGroup.fromMap(map[GroupMixin.fieldGroup]),
+      group: map[GroupMixin.fieldGroup],
       name: map[DesktopSpecificationSharedMixin.fieldName],
       icon: map[DesktopSpecificationSharedMixin.fieldIcon],
-      exec: map[DesktopSpecificationSharedMixin.fieldExec]
+      exec: map[DesktopSpecificationSharedMixin.fieldExec],
+      unrecognisedEntries: map[UnrecognisedEntriesMixin.fieldEntries]
     );
   }
 
@@ -64,13 +66,15 @@ class DesktopAction with DesktopSpecificationSharedMixin, GroupMixin, Unrecognis
     SpecificationLocaleString? name,
     DesktopGroup? group,
     SpecificationIconString? icon,
-    SpecificationString? exec
+    SpecificationString? exec,
+    List<UnrecognisedEntry>? unrecognisedEntries
   }) {
     return DesktopAction(
-      name: name ?? this.name,
-      group: group ?? this.group,
-      icon: icon ?? this.icon,
-      exec: exec ?? this.exec
+      name: name ?? this.name.copyWith(),
+      group: group ?? this.group.copyWith(),
+      icon: icon ?? this.icon?.copyWith(),
+      exec: exec ?? this.exec?.copyWith(),
+      unrecognisedEntries: unrecognisedEntries ?? List.of(this.unrecognisedEntries)
     );
   }
 
@@ -80,12 +84,14 @@ class DesktopAction with DesktopSpecificationSharedMixin, GroupMixin, Unrecognis
         name == other.name &&
         group == other.group &&
         icon == other.icon &&
-        exec == other.exec;
+        exec == other.exec &&
+      const ListEquality().equals(unrecognisedEntries, other.unrecognisedEntries);
   }
 
   @override
   int get hashCode => name.hashCode ^
   group.hashCode ^
   icon.hashCode ^
-  exec.hashCode;
+  exec.hashCode ^
+  unrecognisedEntries.hashCode;
 }

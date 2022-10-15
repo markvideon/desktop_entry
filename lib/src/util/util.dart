@@ -1,6 +1,14 @@
 import 'dart:developer';
-import 'dart:io' show ProcessResult;
+import 'dart:io' show Process, ProcessResult;
 import 'package:collection/collection.dart';
+
+Future<Process> adminProcess(String processName, List<String> processArguments) async {
+  return Process.start(
+    processName,
+    processArguments,
+    runInShell: true
+  );
+}
 
 logProcessStdOut(ProcessResult processResult) {
   if (processResult.stdout is List<int>) {
@@ -54,6 +62,16 @@ bool compareMaps(Map<String, dynamic> mapA, Map<String, dynamic> mapB) {
       if (value is List) {
         equalityTestResult = const ListEquality().equals(value, mapB[key]);
       } else if (value is Map) {
+        final mapX = value;
+        final mapY = mapB[key] as Map;
+
+        mapX.forEach((key, value) {
+          if (mapX[key] != mapY[key]) {
+            print('mapX[$key] != mapY[$key]. ${value} != ${value}');
+            print(mapX[key]?.elementConstructor() == mapY[key]?.elementConstructor());
+          }
+        });
+        print('Map hashcodes: ${value.hashCode}, ${mapB.hashCode}');
         equalityTestResult = const MapEquality().equals(value, mapB[key]);
       } else {
         equalityTestResult = value == mapB[key];
@@ -65,10 +83,10 @@ bool compareMaps(Map<String, dynamic> mapA, Map<String, dynamic> mapB) {
     }
   });
 
-  log('keysExclusiveToA: $keysExclusiveToA');
-  log('keysExclusiveToB: $keysExclusiveToB');
+  print('keysExclusiveToA: $keysExclusiveToA\n\n');
+  print('keysExclusiveToB: $keysExclusiveToB\n\n');
   for (var key in differentValues) {
-    log('differentValues for $key. mapA: ${mapA[key]} mapB: ${mapB[key]}');
+    print('differentValues for $key. mapA: ${mapA[key]} mapB: ${mapB[key]}\n\n');
   }
 
   return keysExclusiveToA.isEmpty && keysExclusiveToB.isEmpty && differentValues.isEmpty;

@@ -34,11 +34,10 @@ List<String> parseRow(String input, String delimiter) {
   return parts;
 }
 
-final _parseKeyValueRegExp = RegExp(r'(\w+)=(.+)');
+final _parseKeyValueRegExp = RegExp(r'([\w-]+)=(.+)');
 
 MapEntry<String, dynamic>? parseLine(String line) {
   String effectiveLine = line.trim();
-
   final match = _parseKeyValueRegExp.firstMatch(effectiveLine);
 
   if (match == null || match.group(1) == null || match.group(2) == null) {

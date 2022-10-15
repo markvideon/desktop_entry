@@ -1,15 +1,15 @@
+import 'dart:async';
+import 'dart:developer';
 import 'dart:io' show File, FileSystemException, Platform, Process;
-
 import '../model/desktop_contents.dart';
 import 'package:path/path.dart' show Context, Style;
-
-import '../const.dart';
 import '../util/util.dart';
 
 Future<String> installFromMemory({
   required DesktopContents contents,
   required String filename,
-  required String installationPath
+  required String installationPath,
+  Future<String> Function()? getPassword
 }) async {
   // Deliberate decision not to throw errors based on runtime platform at this time.
   if (Platform.isLinux == false) {
@@ -17,10 +17,26 @@ Future<String> installFromMemory({
   }
 
   final file = await DesktopContents.toFile(filename, contents);
-  return installFromFile(file, installationDirectoryPath: installationPath);
+  return installFromFile(
+    file,
+    installationDirectoryPath: installationPath,
+    getPassword: getPassword
+  );
 }
 
-Future<String> installFromFile(File file, {required String installationDirectoryPath}) async {
+// Locations: these correspond to the 'applications' folder of each of the
+// XDG_DATA_DIRS
+// /usr/share/ubuntu/applications,
+// /home/mark/.local/share/flatpak/exports/share/applications,
+// /var/lib/flatpak/exports/share/applications,
+// /usr/local/share/applications,
+// /usr/share/applications,
+// /var/lib/snapd/desktop/applications
+
+Future<String> installFromFile(File file, {
+  required String installationDirectoryPath,
+  Future<String> Function()? getPassword
+    }) async {
   // Deliberate decision not to throw errors based on runtime platform at this time.
   if (Platform.isLinux == false) {
     return '';
@@ -30,18 +46,26 @@ Future<String> installFromFile(File file, {required String installationDirectory
     throw const FileSystemException('File not found');
   }
   final appliedDestinationDirectoryPath = installationDirectoryPath;
-  print('Installing from... ${file.path}');
-  print('Installing to... $appliedDestinationDirectoryPath');
+  log('Installing from... ${file.path}');
+  log('Installing to... $appliedDestinationDirectoryPath');
+
+  const processName = 'desktop-file-install';
+  final arguments = [
+    file.path,
+    '--dir=$appliedDestinationDirectoryPath'
+  ];
+
   final fileInstall = await Process.run(
-      'desktop-file-install',
-      [
-        file.path,
-        '--dir=$appliedDestinationDirectoryPath'
-      ],
-      runInShell: true
+    processName,
+    arguments,
+    runInShell: true
   );
 
-  checkProcessStdErr(fileInstall);
+  try {
+    checkProcessStdErr(fileInstall);
+  } catch (error) {
+    log('$error');
+  }
 
   if (fileInstall.exitCode < 0) {
     throw Exception('Error code on installation: ${fileInstall.exitCode}');
@@ -53,7 +77,11 @@ Future<String> installFromFile(File file, {required String installationDirectory
       runInShell: true
   );
 
-  checkProcessStdErr(updateDatabase);
+  try {
+    checkProcessStdErr(updateDatabase);
+  } catch (error) {
+    log('$error');
+  }
 
   if (updateDatabase.exitCode < 0) {
     throw Exception('Error code on updateDatabase: ${updateDatabase.exitCode}');
@@ -68,6 +96,7 @@ Future<String> installFromFile(File file, {required String installationDirectory
   }
 }
 
+// todo: Allow admin permissions
 Future<void> uninstall(File file) async {
   // Deliberate decision not to throw errors based on runtime platform at this time.
   if (Platform.isLinux == false) {

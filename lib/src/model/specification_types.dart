@@ -2,6 +2,7 @@ import 'dart:collection';
 import 'dart:io' if (dart.library.html) 'dart:html' show File, FileMode;
 
 import 'package:collection/collection.dart';
+import 'package:desktop_entry/desktop_entry.dart';
 
 import '../util/build_line.dart';
 import 'desktop_entry.dart';
@@ -23,7 +24,7 @@ const _escapeSequences = [
 
 ///  Values of type [SpecificationString] may contain all ASCII characters except for
 ///  control characters.
-class SpecificationString extends _DesktopEntryType<String> implements FileWritable {
+class SpecificationString extends DesktopEntryType<String> implements FileWritable {
   SpecificationString(super.value, {
     List<String>? comments,
   }) {
@@ -35,18 +36,19 @@ class SpecificationString extends _DesktopEntryType<String> implements FileWrita
     this.comments = comments ?? <String>[];
   }
 
-  SpecificationString copyWith({String? value}) {
-    return SpecificationString(value ?? this.value);
+  SpecificationString copyWith({String? value, List<String>? comments}) {
+    return SpecificationString(value ?? this.value, comments: comments ?? List.of(this.comments));
   }
 
   @override
   bool operator ==(Object other) {
     return other is SpecificationString &&
-        value == other.value;
+      value == other.value &&
+      const ListEquality().equals(comments, other.comments);
   }
 
   @override
-  int get hashCode => value.hashCode;
+  int get hashCode => value.hashCode ^ comments.hashCode;
 
   @override
   writeToFile(File file, {String? key}) {
@@ -55,11 +57,19 @@ class SpecificationString extends _DesktopEntryType<String> implements FileWrita
     }
     file.writeAsStringSync(buildLine(key!, value));
   }
+
+  @override
+  toString() {
+    return 'SpecificationString{ '
+      'value: $value, '
+      'comments: $comments, '
+    '}';
+  }
 }
 
 ///  Values of type [SpecificationLocaleString] are user displayable, and are encoded in
 ///  UTF-8.
-class SpecificationLocaleString extends _DesktopEntryType<String>
+class SpecificationLocaleString extends DesktopEntryType<String>
   with SupportsLocalisationMixin<SpecificationLocaleString> implements FileWritable {
   SpecificationLocaleString(super.value, {
     List<String>? comments,
@@ -70,20 +80,26 @@ class SpecificationLocaleString extends _DesktopEntryType<String>
 
   SpecificationLocaleString copyWith({
     String? value,
+    List<String>? comments,
     Map<String, SpecificationLocaleString>? localisedValues
   }) {
-    return SpecificationLocaleString(value ?? this.value, localisedValues: localisedValues);
+    return SpecificationLocaleString(
+      value ?? this.value,
+      localisedValues: localisedValues ?? Map.of(this.localisedValues),
+      comments: comments ?? List.of(this.comments)
+    );
   }
 
   @override
   bool operator ==(Object other) {
     return other is SpecificationLocaleString &&
-        value == other.value &&
-        localisedValues == other.localisedValues;
+      value == other.value &&
+      const ListEquality().equals(comments, other.comments) &&
+      const MapEquality().equals(localisedValues, other.localisedValues);
   }
 
   @override
-  int get hashCode => value.hashCode ^ localisedValues.hashCode;
+  int get hashCode => value.hashCode ^ localisedValues.hashCode ^ comments.hashCode;
 
   @override
   writeToFile(File file, {String? key}) {
@@ -95,13 +111,22 @@ class SpecificationLocaleString extends _DesktopEntryType<String>
       file.writeAsStringSync(buildLine('$key[$localisedKey]', value.toString()));
     });
   }
+
+  @override
+  toString() {
+    return 'SpecificationLocaleString{ '
+      'value: $value, '
+      'comments: $comments, '
+      'localisedValues: $localisedValues '
+    '}';
+  }
 }
 
 ///  Values of type iconstring are the names of icons;
 ///  these may be absolute paths, or symbolic names for icons located using
 ///  the algorithm described in the Icon Theme Specification.
 ///  Such values are not user-displayable, and are encoded in UTF-8.
-class SpecificationIconString extends _DesktopEntryType<String>
+class SpecificationIconString extends DesktopEntryType<String>
     with SupportsLocalisationMixin<SpecificationIconString> implements FileWritable {
   SpecificationIconString(super.value, {Map<String, SpecificationIconString>? localisedValues, List<String>? comments}) {
     this.localisedValues = localisedValues ?? <String, SpecificationIconString>{};
@@ -115,8 +140,8 @@ class SpecificationIconString extends _DesktopEntryType<String>
   }) {
     return SpecificationIconString(
       value ?? this.value,
-      localisedValues: localisedValues,
-      comments: comments ?? this.comments
+      localisedValues: localisedValues ?? Map.of(this.localisedValues),
+      comments: comments ?? List.of(this.comments)
     );
   }
 
@@ -143,10 +168,19 @@ class SpecificationIconString extends _DesktopEntryType<String>
       file.writeAsStringSync(buildLine('$key[$localisedKey]', value.toString()));
     });
   }
+
+  @override
+  toString() {
+    return 'SpecificationIconString{ '
+      'value: $value, '
+      'comments: $comments, '
+      'localisedValues: $localisedValues '
+    '}';
+  }
 }
 
 /// Values of type boolean must either be the string true or false.
-class SpecificationBoolean extends _DesktopEntryType<bool> implements FileWritable {
+class SpecificationBoolean extends DesktopEntryType<bool> implements FileWritable {
   SpecificationBoolean(super.value, {List<String>? comments}) {
     this.comments = comments ?? <String>[];
   }
@@ -178,12 +212,20 @@ class SpecificationBoolean extends _DesktopEntryType<bool> implements FileWritab
     }
     file.writeAsStringSync(buildLine(key!, value.toString()));
   }
+
+  @override
+  toString() {
+    return 'SpecificationBoolean{ '
+      'value: $value, '
+      'comments: $comments, '
+    '}';
+  }
 }
 
 ///  Values of type [SpecificationNumeric] must be a valid floating point number as recognized
 ///  by the %f specifier for scanf in the C locale.
 ///  Not used according to the specification table.
-class SpecificationNumeric extends _DesktopEntryType<double> implements FileWritable {
+class SpecificationNumeric extends DesktopEntryType<double> implements FileWritable {
   SpecificationNumeric(super.value, {List<String>? comments}) {
     this.comments = comments ?? <String>[];
   }
@@ -215,10 +257,18 @@ class SpecificationNumeric extends _DesktopEntryType<double> implements FileWrit
     }
     file.writeAsStringSync(buildLine(key!, value.toString()));
   }
+
+  @override
+  toString() {
+    return 'SpecificationNumeric{ '
+      'value: $value, '
+      'comments: $comments, '
+    '}';
+  }
 }
 
-abstract class _DesktopEntryType<T> with CommentsMixin {
-  _DesktopEntryType(this.value);
+abstract class DesktopEntryType<T> with CommentsMixin {
+  DesktopEntryType(this.value);
 
   T value;
 
@@ -228,7 +278,7 @@ abstract class _DesktopEntryType<T> with CommentsMixin {
   }
 }
 
-class SpecificationTypeList<T extends _DesktopEntryType> extends ListBase<T> with CommentsMixin, FileWritable {
+class SpecificationTypeList<T extends DesktopEntryType> extends ListBase<T> with CommentsMixin, FileWritable {
   SpecificationTypeList(List<T> primitiveList, {
     required this.elementConstructor,
     List<String>? comments,
@@ -265,6 +315,18 @@ class SpecificationTypeList<T extends _DesktopEntryType> extends ListBase<T> wit
     }
   }
 
+  SpecificationTypeList<T> copyWith({
+    List<T>? primitiveList,
+    T Function()? elementConstructor,
+    List<String>? comments,
+  }) {
+    return SpecificationTypeList<T>(
+      primitiveList ?? List.of(this),
+      elementConstructor: elementConstructor ?? this.elementConstructor,
+      comments: comments ?? List.of(this.comments),
+    );
+  }
+
   @override
   writeToFile(File file) {
     // Write the comments associated with the [KeywordList] first.
@@ -285,9 +347,32 @@ class SpecificationTypeList<T extends _DesktopEntryType> extends ListBase<T> wit
     final primaryValues = map((keyword) => keyword.value.toString()).toList(growable: false);
     file.writeAsStringSync(buildListLine(DesktopEntry.fieldKeywords, primaryValues), mode: FileMode.writeOnlyAppend);
   }
+
+  @override
+  bool operator ==(Object other) {
+    return other is SpecificationTypeList<T> &&
+      const ListEquality().equals(_internalList, other._internalList) &&
+      const ListEquality().equals(comments, other.comments) &&
+      elementConstructor() == other.elementConstructor();
+  }
+
+  @override
+  int get hashCode => _internalList.hashCode ^
+    comments.hashCode ^
+    elementConstructor().hashCode;
+
+  @override
+  toString() {
+    print(elementConstructor());
+    return 'SpecificationTypeList{ '
+      'internalList: ${_internalList.map((e) => e.toString())}, '
+      'comments: $comments, '
+      'elementConstructor: ${elementConstructor().hashCode} '
+    '}';
+  }
 }
 
-class LocalisableSpecificationTypeList<T extends _DesktopEntryType>
+class LocalisableSpecificationTypeList<T extends DesktopEntryType>
     extends SpecificationTypeList<T> with SupportsLocalisationMixin<List<T>> {
   LocalisableSpecificationTypeList(super.primitiveList, {
     required super.elementConstructor,
@@ -297,6 +382,7 @@ class LocalisableSpecificationTypeList<T extends _DesktopEntryType>
     this.localisedValues = localisedValues ?? {};
   }
 
+  @override
   LocalisableSpecificationTypeList<T> copyWith({
     List<T>? primitiveList,
     T Function()? elementConstructor,
@@ -346,6 +432,30 @@ class LocalisableSpecificationTypeList<T extends _DesktopEntryType>
       file.writeAsStringSync(buildListLine('${DesktopEntry.fieldKeywords}[$languageModifier]', languageSpecificValues), mode: FileMode.writeOnlyAppend);
     });
   }
+
+  @override
+  operator ==(Object other) =>
+      other is LocalisableSpecificationTypeList<T> &&
+      const ListEquality().equals(_internalList, other._internalList) &&
+      const ListEquality().equals(comments, other.comments) &&
+      elementConstructor() == other.elementConstructor() &&
+      const MapEquality().equals(localisedValues, other.localisedValues);
+
+  @override
+  int get hashCode => _internalList.hashCode ^
+    comments.hashCode ^
+    elementConstructor().hashCode ^
+    localisedValues.hashCode;
+
+  @override
+  toString() {
+    return 'LocalisableSpecificationTypeList{ '
+        'internalList: ${_internalList.map((e) => e.toString())}, '
+        'localisedValues: ${localisedValues.toString()}, '
+        'comments: $comments, '
+        'elementConstructor: ${elementConstructor().hashCode} '
+    '}';
+  }
 }
 
 // Can't extend MapEntry, as per this PR:
@@ -364,4 +474,15 @@ class SpecificationMapEntry<K, V> implements MapEntry<K, V> {
 
   @override
   V get value => _value;
+
+  @override
+  bool operator ==(Object other) {
+    return other is SpecificationMapEntry<K, V> &&
+      key == other.key &&
+      value == other.value &&
+      modifier == other.modifier;
+  }
+
+  @override
+  int get hashCode => key.hashCode ^ value.hashCode ^ modifier.hashCode;
 }

@@ -1,6 +1,5 @@
 import 'dart:html' show File;
-
-import '../../desktop_entry.dart';
+import '../model/desktop_contents.dart';
 
 Future<String> installFromMemory({required DesktopContents contents, required String filename}) async {
   return '';

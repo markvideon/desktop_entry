@@ -1,8 +1,11 @@
-import 'dart:io' if (dart.library.html) 'dart:html' show File, Platform;
+import 'dart:convert';
+import 'dart:developer';
+import 'dart:io' if (dart.library.html) 'dart:html' show Directory, File, Platform;
 
 import 'package:desktop_entry/desktop_entry.dart';
 import 'package:test/test.dart';
 import 'package:path/path.dart';
+import 'package:xdg_directories/xdg_directories.dart';
 
 final pathContext = Context(style: Style.posix);
 
@@ -19,14 +22,20 @@ final manualDefinitionExample = DesktopContents(
     tryExec: SpecificationString('fooview'),
     exec: SpecificationString('fooview %u'),
     icon: SpecificationIconString('fooview'),
-    mimeType: <SpecificationString>[
-      SpecificationString('image/x-foo'),
-      SpecificationString('x-scheme-hander/fooview'),
-    ],
-    actions: <SpecificationString>[
-      SpecificationString('Gallery'),
-      SpecificationString('Create')
-    ]
+    mimeType: SpecificationTypeList<SpecificationString>(
+      <SpecificationString>[
+        SpecificationString('image/x-foo'),
+        SpecificationString('x-scheme-hander/fooview'),
+      ],
+      elementConstructor: () => SpecificationString('')
+    ),
+    actions: SpecificationTypeList<SpecificationString>(
+      <SpecificationString>[
+        SpecificationString('Gallery'),
+        SpecificationString('Create')
+      ],
+      elementConstructor: () => SpecificationString('')
+    )
   ),
   unrecognisedGroups: <UnrecognisedGroup>[
     UnrecognisedGroup(
@@ -72,6 +81,39 @@ final firefoxDefinition = DesktopContents(
 );*/
 
 void main() async {
+  test('Check XDG Directory Exists', () async {
+    final pathContext = Context(style: Style.posix);
+
+    final existsLookup = <String, bool>{};
+    for (var element in dataDirs) {
+      final pathToApplicationSubfolder = pathContext.join(element.path, 'applications');
+      log(pathToApplicationSubfolder);
+      existsLookup[pathToApplicationSubfolder] = Directory(pathToApplicationSubfolder).existsSync();
+      if (existsLookup[pathToApplicationSubfolder] == false) {
+        log('$pathToApplicationSubfolder DNE');
+      }
+    }
+
+    expect(existsLookup.values.contains(false), false);
+  });
+
+  test('Can Create Missing XDG Directories', () async {
+    final pathContext = Context(style: Style.posix);
+
+    final existsLookup = <String, bool>{};
+    for (var element in dataDirs) {
+      final pathToApplicationSubfolder = pathContext.join(element.path, 'applications');
+      final directory = Directory(pathToApplicationSubfolder);
+      log(pathToApplicationSubfolder);
+      existsLookup[pathToApplicationSubfolder] = directory.existsSync();
+      if (existsLookup[pathToApplicationSubfolder] == false) {
+        await createDirectoryIfDne(pathToApplicationSubfolder);
+        expect(directory.existsSync(), true);
+        await deleteExistingDirectory(pathToApplicationSubfolder);
+      }
+    }
+  });
+
   test('Install Desktop Entry - Existing', () async {
     const filename = 'example-success.desktop';
     const existingPath = 'test/$filename';
@@ -83,13 +125,17 @@ void main() async {
       (Platform.environment['HOME'] as String).isNotEmpty,
       true);
 
-    print('Part 1: ${Platform.environment['HOME']}');
-    print('Part 2: $localUserDesktopEntryInstallationDirectoryPath');
-    final destinationFilePath = pathContext.join(Platform.environment['HOME']!, localUserDesktopEntryInstallationDirectoryPath);
+    final destinationFolderPath = pathContext.join(
+        Platform.environment['HOME']!,
+        localUserDesktopEntryInstallationDirectoryPath);
 
-    await installFromFile(existingFile, installationDirectoryPath: destinationFilePath);
+    await installFromFile(
+        existingFile,
+        installationDirectoryPath: destinationFolderPath);
 
+    final destinationFilePath = pathContext.join(destinationFolderPath, filename);
     final destinationFile = File(destinationFilePath);
+    log('Destination file: ${destinationFile.path}');
     expect(destinationFile.existsSync(), true);
   });
 
@@ -105,30 +151,21 @@ void main() async {
 
     expect(file.existsSync(), true);
 
-    await uninstall(filename);
+    await _uninstall(filename);
 
     expect(file.existsSync(), false);
   });
 
-  test('Check Example File Exists', () async {
-    // Path is relative to project root.
-    const existingPath = 'test/example-fail.desktop';
-    final file = File(existingPath);
+  test('Parse Desktop File Correctly', () async {
+    const filename = 'example-success.desktop';
+    const existingPath = 'test/$filename';
+    final existingFile = File(existingPath);
 
-    expect(await file.exists(), true);
-  });
-
-  test('`example-fail.desktop` Entry Written Then Read Correctly', () async {
-    final file = await DesktopContents.toFile('test', manualDefinitionExample);
-    final parsedDefinition = DesktopContents.fromFile(file);
-
-    expect(manualDefinitionExample == parsedDefinition, true);
-
-    file.deleteSync();
-    expect(file.existsSync(), false);
+    final DesktopContents contents = DesktopContents.fromFile(existingFile);
+    print(compareMaps(DesktopContents.toData(contents), DesktopContents.toData(manualDefinitionExample)));
+    expect(contents == manualDefinitionExample, true);
   });
 }
-
 
 /*
   Test Util functions
@@ -147,17 +184,30 @@ install(String filename, {File? file}) async {
 /// Install the Desktop file at [projectRoot]/test/[filename]
 /// if it does not already exist.
 /// Uninstall the file.
-uninstall(String filename) async {
+_uninstall(String filename) async {
   final pathContext = Context(style: Style.posix);
   final installedPath = pathContext.join(
       Platform.environment['HOME']!,
       localUserDesktopEntryInstallationDirectoryPath,
       filename);
   final file = File(installedPath);
-
-  if (!file.existsSync()) {
-    await install(filename);
-  }
-
+  log('About to uninstall file at ${file.path}');
+  await uninstall(file);
   expect(file.existsSync(), false);
+}
+
+Future<void> createDirectoryIfDne(String path) async {
+  final directory = Directory(path);
+
+  if (!directory.existsSync()) {
+    await Directory(path).create(recursive: true);
+  }
+}
+
+Future<void> deleteExistingDirectory(String path) async {
+  final directory = Directory(path);
+
+  if (directory.existsSync()) {
+    await Directory(path).delete(recursive: true);
+  }
 }

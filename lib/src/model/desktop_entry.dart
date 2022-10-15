@@ -23,18 +23,18 @@ class DesktopEntry with DesktopSpecificationSharedMixin, UnrecognisedEntriesMixi
     this.comment,
     SpecificationIconString? icon,
     this.hidden,
-    this.onlyShowIn = const <SpecificationString>[],
-    this.notShowIn = const <SpecificationString>[],
+    this.onlyShowIn,
+    this.notShowIn,
     this.dBusActivatable,
     this.tryExec,
     SpecificationString? exec,
     this.path,
     this.terminal,
-    this.actions = const <SpecificationString>[],
-    this.mimeType = const <SpecificationString>[],
-    this.categories = const <SpecificationString>[],
-    this.implements = const <SpecificationString>[],
-    LocalisableSpecificationTypeList<SpecificationLocaleString>? keywords,
+    this.actions,
+    this.mimeType,
+    this.categories,
+    this.implements,
+    this.keywords,
     this.startupNotify,
     this.startupWmClass,
     this.url,
@@ -47,7 +47,6 @@ class DesktopEntry with DesktopSpecificationSharedMixin, UnrecognisedEntriesMixi
       throw Exception('URL must be defined for type `Link`.');
     }
     this.group = group ?? DesktopGroup('Desktop Entry');
-    this.keywords = keywords ?? LocalisableSpecificationTypeList([], elementConstructor: () => SpecificationLocaleString(''));
     // Setting fields from mixin.
     this.name = name;
     this.icon = icon;
@@ -122,10 +121,10 @@ class DesktopEntry with DesktopSpecificationSharedMixin, UnrecognisedEntriesMixi
   ///  usual way: with a semicolon. The same desktop name may not appear in
   ///  both OnlyShowIn and NotShowIn of a group.
   ///  May be present on Types 1, 2, 3.
-  List<SpecificationString> onlyShowIn;
+  SpecificationTypeList<SpecificationString>? onlyShowIn;
   static const fieldOnlyShowIn = 'OnlyShowIn';
 
-  List<SpecificationString> notShowIn;
+  SpecificationTypeList<SpecificationString>? notShowIn;
   static const fieldNotShowIn = 'NotShowIn';
 
   ///  A boolean value specifying if D-Bus activation is supported for this
@@ -164,26 +163,26 @@ class DesktopEntry with DesktopSpecificationSharedMixin, UnrecognisedEntriesMixi
   ///  application to make a specific action, different from the default
   ///  behavior. The Application actions section describes how actions work.
   ///  May be present on Type 1.
-  List<SpecificationString> actions;
+  SpecificationTypeList<SpecificationString>? actions;
   static const fieldActions = 'Actions';
 
   ///  The MIME type(s) supported by this application.
   ///  May be present on Type 1.
-  List<SpecificationString> mimeType;
+  SpecificationTypeList<SpecificationString>? mimeType;
   static const fieldMimeType = 'MimeType';
 
   ///  Categories in which the entry should be shown in a menu
   ///  (for possible values see the Desktop Menu Specification).
   ///  https://www.freedesktop.org/wiki/Specifications/menu-spec/
   ///  May be present on Type 1.
-  List<SpecificationString> categories;
+  SpecificationTypeList<SpecificationString>? categories;
   static const fieldCategories = 'Categories';
 
   ///  A list of interfaces that this application implements.
   ///  By default, a desktop file implements no interfaces.
   ///  See Interfaces for more information on how this works.
   ///  No type specified.
-  List<SpecificationString> implements;
+  SpecificationTypeList<SpecificationString>? implements;
   static const fieldImplements = 'Implements';
 
   ///  A list of strings which may be used in addition to other metadata to
@@ -191,7 +190,7 @@ class DesktopEntry with DesktopSpecificationSharedMixin, UnrecognisedEntriesMixi
   ///  through entries. The values are not meant for display, and should not
   ///  be redundant with the values of Name or GenericName.
   ///  May be present on Type 1.
-  late LocalisableSpecificationTypeList<SpecificationLocaleString> keywords;
+  LocalisableSpecificationTypeList<SpecificationLocaleString>? keywords;
   static const fieldKeywords = 'Keywords';
 
   ///  If true, it is KNOWN that the application will send a "remove" message
@@ -305,17 +304,17 @@ class DesktopEntry with DesktopSpecificationSharedMixin, UnrecognisedEntriesMixi
     SpecificationLocaleString? comment,
     SpecificationIconString? icon,
     SpecificationBoolean? hidden,
-    List<SpecificationString>? onlyShowIn,
-    List<SpecificationString>? notShowIn,
+    SpecificationTypeList<SpecificationString>? onlyShowIn,
+    SpecificationTypeList<SpecificationString>? notShowIn,
     SpecificationBoolean? dBusActivatable,
     SpecificationString? tryExec,
     SpecificationString? exec,
     SpecificationString? path,
     SpecificationBoolean? terminal,
-    List<SpecificationString>? actions,
-    List<SpecificationString>? mimeType,
-    List<SpecificationString>? categories,
-    List<SpecificationString>? implements,
+    SpecificationTypeList<SpecificationString>? actions,
+    SpecificationTypeList<SpecificationString>? mimeType,
+    SpecificationTypeList<SpecificationString>? categories,
+    SpecificationTypeList<SpecificationString>? implements,
     LocalisableSpecificationTypeList<SpecificationLocaleString>? keywords,
     SpecificationBoolean? startupNotify,
     SpecificationString? startupWmClass,
@@ -324,7 +323,7 @@ class DesktopEntry with DesktopSpecificationSharedMixin, UnrecognisedEntriesMixi
     SpecificationBoolean? singleMainWindow,
   }) {
     return DesktopEntry(
-      group: groupName ?? this.group.copyWith(),
+      group: groupName ?? group.copyWith(),
       type: type ?? this.type.copyWith(),
       version: version ?? this.version?.copyWith(),
       name: name ?? this.name.copyWith(),
@@ -333,18 +332,18 @@ class DesktopEntry with DesktopSpecificationSharedMixin, UnrecognisedEntriesMixi
       comment: comment ?? this.comment?.copyWith(),
       icon: icon ?? this.icon?.copyWith(),
       hidden: hidden ?? this.hidden?.copyWith(),
-      onlyShowIn: List.of(onlyShowIn ?? this.onlyShowIn),
-      notShowIn: List.of(notShowIn ?? this.notShowIn),
+      onlyShowIn: onlyShowIn ?? this.onlyShowIn?.copyWith(),
+      notShowIn: notShowIn ?? this.notShowIn?.copyWith(),
       dBusActivatable: dBusActivatable ?? this.dBusActivatable?.copyWith(),
       tryExec: tryExec ?? this.tryExec?.copyWith(),
       exec: exec ?? this.exec?.copyWith(),
       path: path ?? this.path?.copyWith(),
       terminal: terminal ?? this.terminal?.copyWith(),
-      actions: List.of(actions ?? this.actions),
-      mimeType: List.of(mimeType ?? this.mimeType),
-      categories: List.of(categories ?? this.categories),
-      implements: List.of(implements ?? this.implements),
-      keywords: keywords ?? this.keywords.copyWith(),
+      actions: actions ?? this.actions?.copyWith(),
+      mimeType: mimeType ?? this.mimeType?.copyWith(),
+      categories: categories ?? this.categories?.copyWith(),
+      implements: implements ?? this.implements?.copyWith(),
+      keywords: keywords ?? this.keywords?.copyWith(),
       startupNotify: startupNotify ?? this.startupNotify?.copyWith(),
       url: url ?? this.url?.copyWith(),
       prefersNonDefaultGpu: prefersNonDefaultGpu ?? this.prefersNonDefaultGpu?.copyWith(),
@@ -361,18 +360,18 @@ class DesktopEntry with DesktopSpecificationSharedMixin, UnrecognisedEntriesMixi
       if (entry.comment is SpecificationLocaleString) fieldComment: entry.comment!.copyWith(),
       if (entry.icon is SpecificationIconString) DesktopSpecificationSharedMixin.fieldIcon: entry.icon!.copyWith(),
       if (entry.hidden is SpecificationBoolean) fieldHidden: entry.hidden!.copyWith(),
-      if (entry.onlyShowIn.isNotEmpty) fieldOnlyShowIn: List.of(entry.onlyShowIn),
-      if (entry.notShowIn.isNotEmpty) fieldNotShowIn: List.of(entry.notShowIn),
+      if (entry.onlyShowIn is SpecificationTypeList<SpecificationString> && entry.onlyShowIn!.isNotEmpty) fieldOnlyShowIn: entry.onlyShowIn!.copyWith(),
+      if (entry.notShowIn is SpecificationTypeList<SpecificationString> && entry.notShowIn!.isNotEmpty) fieldNotShowIn: entry.notShowIn!.copyWith(),
       if (entry.dBusActivatable is SpecificationBoolean) fieldDBusActivatable: entry.dBusActivatable!.copyWith(),
       if (entry.tryExec is SpecificationString) fieldTryExec: entry.tryExec!.copyWith(),
       if (entry.exec is SpecificationString) DesktopSpecificationSharedMixin.fieldExec: entry.exec!.copyWith(),
       if (entry.path is SpecificationString) fieldPath: entry.path!.copyWith(),
       if (entry.terminal is SpecificationBoolean) fieldTerminal: entry.terminal!.copyWith(),
-      if (entry.actions.isNotEmpty) fieldActions: List.of(entry.actions),
-      if (entry.mimeType.isNotEmpty) fieldMimeType: List.of(entry.mimeType),
-      if (entry.categories.isNotEmpty) fieldCategories: List.of(entry.categories),
-      if (entry.implements.isNotEmpty) fieldImplements: List.of(entry.implements),
-      if (entry.keywords.isNotEmpty) fieldKeywords: List.of(entry.keywords),
+      if (entry.actions is SpecificationTypeList<SpecificationString> && entry.actions!.isNotEmpty) fieldActions: entry.actions!.copyWith(),
+      if (entry.mimeType is SpecificationTypeList<SpecificationString> && entry.mimeType!.isNotEmpty) fieldMimeType: entry.mimeType!.copyWith(),
+      if (entry.categories is SpecificationTypeList<SpecificationString> && entry.categories!.isNotEmpty) fieldCategories: entry.categories!.copyWith(),
+      if (entry.implements is SpecificationTypeList<SpecificationString> && entry.implements!.isNotEmpty) fieldImplements: entry.implements!.copyWith(),
+      if (entry.keywords is LocalisableSpecificationTypeList && entry.keywords!.isNotEmpty) fieldKeywords: entry.keywords!.copyWith(),
       if (entry.startupNotify is SpecificationBoolean) fieldStartupNotify: entry.startupNotify!.copyWith(),
       if (entry.startupWmClass is SpecificationString) fieldStartupWmClass: entry.startupWmClass!.copyWith(),
       if (entry.url is SpecificationString) fieldUrl: entry.url,
@@ -393,8 +392,8 @@ class DesktopEntry with DesktopSpecificationSharedMixin, UnrecognisedEntriesMixi
     icon?.writeToFile(file, key: DesktopSpecificationSharedMixin.fieldIcon);
     hidden?.writeToFile(file, key: fieldHidden);
 
-    if (onlyShowIn.isNotEmpty) {
-      final onlyShowInComments = onlyShowIn.map((e) => e.comments)
+    if (onlyShowIn is SpecificationTypeList<SpecificationString> && onlyShowIn!.isNotEmpty) {
+      final onlyShowInComments = onlyShowIn!.map((e) => e.comments)
         .fold(<String>[], (previousValue, element) => [...previousValue, ...element])
         .map((e) => buildComment(e))
         .toList(growable: false);
@@ -403,12 +402,12 @@ class DesktopEntry with DesktopSpecificationSharedMixin, UnrecognisedEntriesMixi
         file.writeAsStringSync(comment);
       }
 
-      final onlyShowInValues = onlyShowIn.map((e) => e.value).toList(growable: false);
+      final onlyShowInValues = onlyShowIn!.map((e) => e.value).toList(growable: false);
       final onlyShowInLine = buildListLine(fieldOnlyShowIn, onlyShowInValues);
       file.writeAsStringSync(onlyShowInLine);
     }
-    if (notShowIn.isNotEmpty) {
-      final notShowInComments = notShowIn.map((e) => e.comments)
+    if (notShowIn is SpecificationTypeList<SpecificationString> && notShowIn!.isNotEmpty) {
+      final notShowInComments = notShowIn!.map((e) => e.comments)
           .fold(<String>[], (previousValue, element) => [...previousValue, ...element])
           .map((e) => buildComment(e))
           .toList(growable: false);
@@ -417,7 +416,7 @@ class DesktopEntry with DesktopSpecificationSharedMixin, UnrecognisedEntriesMixi
         file.writeAsStringSync(comment);
       }
 
-      final notShowInValues = notShowIn.map((e) => e.value).toList(growable: false);
+      final notShowInValues = notShowIn!.map((e) => e.value).toList(growable: false);
       final notShowInLine = buildListLine(fieldNotShowIn, notShowInValues);
       file.writeAsStringSync(notShowInLine);
     }
@@ -428,8 +427,8 @@ class DesktopEntry with DesktopSpecificationSharedMixin, UnrecognisedEntriesMixi
     path?.writeToFile(file, key: fieldPath);
     terminal?.writeToFile(file, key: fieldTerminal);
 
-    if (actions.isNotEmpty) {
-      final actionComments = actions.map((e) => e.comments)
+    if (actions is SpecificationTypeList<SpecificationString> && actions!.isNotEmpty) {
+      final actionComments = actions!.map((e) => e.comments)
           .fold(<String>[], (previousValue, element) => [...previousValue, ...element])
           .map((e) => buildComment(e))
           .toList(growable: false);
@@ -438,13 +437,13 @@ class DesktopEntry with DesktopSpecificationSharedMixin, UnrecognisedEntriesMixi
         file.writeAsStringSync(comment);
       }
 
-      final actionValues = actions.map((e) => e.value).toList(growable: false);
+      final actionValues = actions!.map((e) => e.value).toList(growable: false);
       final actionLine = buildListLine(fieldActions, actionValues);
       file.writeAsStringSync(actionLine);
     }
 
-    if (mimeType.isNotEmpty) {
-      final mimeTypeComments = mimeType.map((e) => e.comments)
+    if (mimeType is SpecificationTypeList<SpecificationString> && mimeType!.isNotEmpty) {
+      final mimeTypeComments = mimeType!.map((e) => e.comments)
           .fold(<String>[], (previousValue, element) => [...previousValue, ...element])
           .map((e) => buildComment(e))
           .toList(growable: false);
@@ -453,13 +452,13 @@ class DesktopEntry with DesktopSpecificationSharedMixin, UnrecognisedEntriesMixi
         file.writeAsStringSync(comment);
       }
 
-      final mimeTypeValues = mimeType.map((e) => e.value).toList(growable: false);
+      final mimeTypeValues = mimeType!.map((e) => e.value).toList(growable: false);
       final mimeTypeLine = buildListLine(fieldMimeType, mimeTypeValues);
       file.writeAsStringSync(mimeTypeLine);
     }
 
-    if (categories.isNotEmpty) {
-      final categoriesComments = categories.map((e) => e.comments)
+    if (categories is SpecificationTypeList<SpecificationString> && categories!.isNotEmpty) {
+      final categoriesComments = categories!.map((e) => e.comments)
           .fold(<String>[], (previousValue, element) => [...previousValue, ...element])
           .map((e) => buildComment(e))
           .toList(growable: false);
@@ -468,13 +467,13 @@ class DesktopEntry with DesktopSpecificationSharedMixin, UnrecognisedEntriesMixi
         file.writeAsStringSync(comment);
       }
 
-      final categoriesValues = categories.map((e) => e.value).toList(growable: false);
+      final categoriesValues = categories!.map((e) => e.value).toList(growable: false);
       final categoriesLine = buildListLine(fieldCategories, categoriesValues);
       file.writeAsStringSync(categoriesLine);
     }
 
-    if (implements.isNotEmpty) {
-      final implementsComments = implements.map((e) => e.comments)
+    if (implements is SpecificationTypeList<SpecificationString> && implements!.isNotEmpty) {
+      final implementsComments = implements!.map((e) => e.comments)
           .fold(<String>[], (previousValue, element) => [...previousValue, ...element])
           .map((e) => buildComment(e))
           .toList(growable: false);
@@ -483,12 +482,12 @@ class DesktopEntry with DesktopSpecificationSharedMixin, UnrecognisedEntriesMixi
         file.writeAsStringSync(comment);
       }
 
-      final implementsValues = implements.map((e) => e.value).toList(growable: false);
+      final implementsValues = implements!.map((e) => e.value).toList(growable: false);
       final implementsLine = buildListLine(fieldImplements, implementsValues);
       file.writeAsStringSync(implementsLine);
     }
 
-    keywords.writeToFile(file);
+    keywords?.writeToFile(file);
 
     startupNotify?.writeToFile(file, key: fieldStartupNotify);
     startupWmClass?.writeToFile(file, key: fieldStartupWmClass);
@@ -509,17 +508,17 @@ class DesktopEntry with DesktopSpecificationSharedMixin, UnrecognisedEntriesMixi
       comment: map[fieldComment],
       icon: map[DesktopSpecificationSharedMixin.fieldIcon],
       hidden: map[fieldHidden],
-      onlyShowIn: map[fieldOnlyShowIn] ?? <SpecificationString>[],
-      notShowIn: map[fieldNotShowIn] ?? <SpecificationString>[],
+      onlyShowIn: map[fieldOnlyShowIn],
+      notShowIn: map[fieldNotShowIn],
       dBusActivatable: map[fieldDBusActivatable],
       tryExec: map[fieldTryExec],
       exec: map[DesktopSpecificationSharedMixin.fieldExec],
       path: map[fieldPath],
       terminal: map[fieldTerminal],
-      actions: map[fieldActions] ?? <SpecificationString>[],
-      mimeType: map[fieldMimeType] ?? <SpecificationString>[],
-      categories: map[fieldCategories] ?? <SpecificationString>[],
-      implements: map[fieldImplements] ?? <SpecificationString>[],
+      actions: map[fieldActions],
+      mimeType: map[fieldMimeType],
+      categories: map[fieldCategories],
+      implements: map[fieldImplements],
       keywords: map[fieldKeywords],
       startupNotify: map[fieldStartupNotify],
       startupWmClass: map[fieldStartupWmClass],

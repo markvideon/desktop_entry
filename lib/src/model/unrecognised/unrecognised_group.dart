@@ -1,5 +1,8 @@
 import 'dart:io' if (dart.library.html) 'dart:html' show File;
 
+import 'package:collection/collection.dart';
+import 'package:desktop_entry/desktop_entry.dart';
+
 import '../interface/write_to_file.dart';
 import '../mixin/group_mixin.dart';
 import '../mixin/unrecognised_entries_mixin.dart';
@@ -19,7 +22,10 @@ class UnrecognisedGroup with GroupMixin, UnrecognisedEntriesMixin implements Fil
   // To
   static Map<String, dynamic> toData(UnrecognisedGroup group) {
     return <String, dynamic>{
-      GroupMixin.fieldGroup: DesktopGroup.toData(group.group),
+      GroupMixin.fieldGroup: DesktopGroup.toData(
+          group.group.value.startsWith('X-') ? group.group :
+          group.group.copyWith(value: 'X-${group.group.value}')
+      ),
       UnrecognisedEntriesMixin.fieldEntries: group.unrecognisedEntries
           .map((e) => UnrecognisedEntry.toData(e))
           .toList(growable: false)
@@ -37,10 +43,26 @@ class UnrecognisedGroup with GroupMixin, UnrecognisedEntriesMixin implements Fil
   // From
   factory UnrecognisedGroup.fromMap(Map<String, dynamic> map) {
     return UnrecognisedGroup(
-      group: DesktopGroup.fromMap(map[GroupMixin.fieldGroup]),
-      entries: (map[UnrecognisedEntriesMixin.fieldEntries] as Iterable)
-          .map((e) => UnrecognisedEntry.fromMap(e))
-          .toList(growable: false)
+      group: map[GroupMixin.fieldGroup],
+      entries: map[UnrecognisedEntriesMixin.fieldEntries] as List<UnrecognisedEntry>
     );
+  }
+
+  @override
+  operator ==(Object other) {
+    return other is UnrecognisedGroup &&
+      group == other.group &&
+      const ListEquality().equals(unrecognisedEntries, other.unrecognisedEntries);
+  }
+
+  @override
+  int get hashCode => group.hashCode ^ unrecognisedEntries.hashCode;
+
+  @override
+  toString() {
+    return 'UnrecognisedGroup{ '
+      '${GroupMixin.fieldGroup}: $group, '
+      '${UnrecognisedEntriesMixin.fieldEntries}: $unrecognisedEntries'
+    '}';
   }
 }

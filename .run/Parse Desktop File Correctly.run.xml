@@ -1,0 +1,9 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="Parse Desktop File Correctly" type="FlutterTestConfigType" factoryName="Flutter Test">
+    <option name="testName" value="Parse Desktop File Correctly" />
+    <option name="testFile" value="$PROJECT_DIR$/test/desktop_entry_test.dart" />
+    <option name="useRegexp" value="false" />
+    <option name="additionalArgs" value="" />
+    <method v="2" />
+  </configuration>
+</component>

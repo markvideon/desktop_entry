@@ -1,5 +1,8 @@
 import 'dart:io' if (dart.library.html) 'dart:html' show File;
 
+import 'package:collection/collection.dart';
+import 'package:desktop_entry/desktop_entry.dart';
+
 import '../interface/write_to_file.dart';
 import '../mixin/comments.dart';
 
@@ -21,7 +24,7 @@ class UnrecognisedEntry with CommentsMixin implements FileWritable {
   // To
   static Map<String, dynamic> toData(UnrecognisedEntry entry) {
     return <String, dynamic> {
-      fieldKey: entry.key,
+      fieldKey: entry.key.startsWith('X-') ? entry.key : 'X-${entry.key}',
       if (entry.values is String) fieldValue: entry.values,
       CommentsMixin.fieldComments: List.of(entry.comments)
     };
@@ -56,5 +59,25 @@ class UnrecognisedEntry with CommentsMixin implements FileWritable {
       values: map[fieldValue],
       comments: map[CommentsMixin.fieldComments]
     );
+  }
+
+  @override
+  int get hashCode => key.hashCode ^ values.hashCode ^ comments.hashCode;
+
+  @override
+  bool operator ==(Object other) {
+    return other is UnrecognisedEntry &&
+      key == other.key &&
+      const ListEquality().equals(values, other.values) &&
+      const ListEquality().equals(comments, other.comments);
+  }
+
+  @override
+  toString() {
+    return 'UnrecognisedEntry{ '
+      '$fieldKey: $key, '
+      '$fieldValue: $values, '
+      '${CommentsMixin.fieldComments}: $comments '
+    '}';
   }
 }

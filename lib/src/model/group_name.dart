@@ -1,5 +1,7 @@
 import 'dart:io' if (dart.library.html) 'dart:html' show File, FileMode;
 
+import 'package:collection/collection.dart';
+
 import 'interface/write_to_file.dart';
 import 'mixin/comments.dart';
 
@@ -53,5 +55,23 @@ class DesktopGroup with CommentsMixin implements FileWritable {
       value ?? this.value,
       comments: comments ?? List.of(this.comments)
     );
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return other is DesktopGroup &&
+      value == other.value &&
+      const ListEquality().equals(comments, other.comments);
+  }
+
+  @override
+  int get hashCode => value.hashCode ^ comments.hashCode;
+
+  @override
+  toString() {
+    return 'DesktopGroup{ '
+      '$fieldValue: $value, '
+      '${CommentsMixin.fieldComments}: $comments '
+    '}';
   }
 }

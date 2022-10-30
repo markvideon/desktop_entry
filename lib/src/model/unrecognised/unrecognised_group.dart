@@ -22,10 +22,7 @@ class UnrecognisedGroup with GroupMixin, UnrecognisedEntriesMixin implements Fil
   // To
   static Map<String, dynamic> toData(UnrecognisedGroup group) {
     return <String, dynamic>{
-      GroupMixin.fieldGroup: DesktopGroup.toData(
-          group.group.value.startsWith('X-') ? group.group :
-          group.group.copyWith(value: 'X-${group.group.value}')
-      ),
+      GroupMixin.fieldGroup: DesktopGroup.toData(group.group),
       UnrecognisedEntriesMixin.fieldEntries: group.unrecognisedEntries
           .map((e) => UnrecognisedEntry.toData(e))
           .toList(growable: false)
@@ -33,10 +30,10 @@ class UnrecognisedGroup with GroupMixin, UnrecognisedEntriesMixin implements Fil
   }
 
   @override
-  writeToFile(File file) {
-    group.writeToFile(file);
+  writeToFile(File file, _) {
+    group.writeToFile(file, null);
     for (var entry in unrecognisedEntries) {
-      entry.writeToFile(file);
+      entry.writeToFile(file, _);
     }
   }
 
@@ -44,7 +41,7 @@ class UnrecognisedGroup with GroupMixin, UnrecognisedEntriesMixin implements Fil
   factory UnrecognisedGroup.fromMap(Map<String, dynamic> map) {
     return UnrecognisedGroup(
       group: map[GroupMixin.fieldGroup],
-      entries: map[UnrecognisedEntriesMixin.fieldEntries] as List<UnrecognisedEntry>
+      entries: map[UnrecognisedEntriesMixin.fieldEntries] as List<UnrecognisedEntry>,
     );
   }
 
@@ -62,7 +59,7 @@ class UnrecognisedGroup with GroupMixin, UnrecognisedEntriesMixin implements Fil
   toString() {
     return 'UnrecognisedGroup{ '
       '${GroupMixin.fieldGroup}: $group, '
-      '${UnrecognisedEntriesMixin.fieldEntries}: $unrecognisedEntries'
+      '${UnrecognisedEntriesMixin.fieldEntries}: $unrecognisedEntries '
     '}';
   }
 }

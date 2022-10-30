@@ -3,12 +3,11 @@ import 'dart:io' if (dart.library.html) 'dart:html' show File, FileMode;
 import 'package:collection/collection.dart';
 
 import 'interface/write_to_file.dart';
-import 'mixin/comments.dart';
+import 'mixin/comments_mixin.dart';
 
 class DesktopGroup with CommentsMixin implements FileWritable {
   DesktopGroup(
-      this.value,
-      { List<String>? comments
+    this.value, { List<String>? comments
   }) {
     this.comments = comments ?? <String>[];
   }
@@ -28,12 +27,13 @@ class DesktopGroup with CommentsMixin implements FileWritable {
   static Map<String, dynamic> toData(DesktopGroup groupName) {
     return <String, dynamic>{
       fieldValue: groupName.value,
-      if (groupName.comments.isNotEmpty) CommentsMixin.fieldComments: List.of(groupName.comments)
+      CommentsMixin.fieldComments: List.of(groupName.comments)
     };
   }
 
   @override
-  writeToFile(File file, {bool clearFile = false}) {
+  writeToFile(File file, String? key) {
+
     final asLines = <String>[
       ...comments,
       '[$value]'
@@ -41,9 +41,7 @@ class DesktopGroup with CommentsMixin implements FileWritable {
     .toList(growable: false);
 
     for (var line in asLines) {
-      bool isFirstLine = asLines.indexOf(line) == 0;
-      bool performClear = clearFile && isFirstLine;
-      file.writeAsStringSync(line, mode: performClear ? FileMode.writeOnly : FileMode.writeOnlyAppend);
+      file.writeAsStringSync(line, mode: FileMode.writeOnlyAppend);
     }
   }
 
@@ -71,7 +69,7 @@ class DesktopGroup with CommentsMixin implements FileWritable {
   toString() {
     return 'DesktopGroup{ '
       '$fieldValue: $value, '
-      '${CommentsMixin.fieldComments}: $comments '
+      '${CommentsMixin.fieldComments}: $comments ${comments.length}'
     '}';
   }
 }

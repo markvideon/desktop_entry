@@ -1,5 +1,4 @@
 mixin CommentsMixin {
-  late List<String> comments;
-
+  List<String> comments = <String>[];
   static const fieldComments = 'comments';
 }

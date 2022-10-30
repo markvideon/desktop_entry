@@ -1,0 +1,41 @@
+[Desktop Entry]
+Version=1.0
+Name=Firefox Web Browser
+Name[ar]=متصفح الويب فَيَرفُكْس
+Name[ca]=Navegador web Firefox
+Name[zh_TW]=Firefox 網路瀏覽器
+Comment=Browse the World Wide Web
+Comment[ar]=تصفح الشبكة العنكبوتية العالمية
+Comment[ca]=Navegueu per la web
+Comment[zh_TW]=瀏覽網際網路
+GenericName=Web Browser
+GenericName[ar]=متصفح ويب
+GenericName[ca]=Navegador web
+GenericName[zh_TW]=網路瀏覽器
+Keywords=Internet;WWW;Browser;Web;Explorer
+Keywords[ar]=انترنت;إنترنت;متصفح;ويب;وب
+Keywords[ca]=Internet;WWW;Navegador;Web;Explorador;Explorer
+Keywords[zh_TW]=Internet;WWW;Browser;Web;Explorer;網際網路;網路;瀏覽器;上網;網頁;火狐
+Exec=firefox %u
+Terminal=false
+X-MultipleArgs=false
+Type=Application
+Icon=/default256.png
+Categories=GNOME;GTK;Network;WebBrowser;
+MimeType=text/html;text/xml;application/xhtml+xml;application/xml;application/rss+xml;application/rdf+xml;image/gif;image/jpeg;image/png;x-scheme-handler/http;x-scheme-handler/https;x-scheme-handler/ftp;x-scheme-handler/chrome;video/webm;application/x-xpinstall;
+StartupNotify=true
+Actions=NewWindow;NewPrivateWindow;
+
+[Desktop Action NewWindow]
+Name=Open a New Window
+Name[ar]=افتح نافذة جديدة
+Name[ca]=Obre una finestra nova
+Name[zh_TW]=開啟新視窗
+Exec=firefox -new-window
+
+[Desktop Action NewPrivateWindow]
+Name=Open a New Private Window
+Name[ar]=افتح نافذة جديدة للتصفح الخاص
+Name[ca]=Obre una finestra nova en mode d'incògnit
+Name[zh_TW]=開啟新隱私瀏覽視窗
+Exec=firefox -private-window

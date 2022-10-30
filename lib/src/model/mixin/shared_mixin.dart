@@ -5,7 +5,6 @@ mixin DesktopSpecificationSharedMixin {
   ///  Must be present on Types 1, 2, 3.
   late SpecificationLocaleString name;
   static const fieldName = 'Name';
-  Map<String, SpecificationLocaleString>? namesByLocale;
 
   ///  Icon to display in file manager, menus, etc.
   ///  If the name is an absolute path, the given file will be used.

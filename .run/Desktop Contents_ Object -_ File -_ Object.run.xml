@@ -1,6 +1,6 @@
 <component name="ProjectRunConfigurationManager">
-  <configuration default="false" name="Parse Simple Desktop File Correctly" type="FlutterTestConfigType" factoryName="Flutter Test">
-    <option name="testName" value="Parse Simple Desktop File Correctly" />
+  <configuration default="false" name="Write To File Correctly" type="FlutterTestConfigType" factoryName="Flutter Test">
+    <option name="testName" value="Write To File Correctly" />
     <option name="testFile" value="$PROJECT_DIR$/test/desktop_entry_test.dart" />
     <option name="useRegexp" value="false" />
     <option name="additionalArgs" value="" />

@@ -11,14 +11,14 @@ import 'mixin/shared_mixin.dart';
 import 'specification_types.dart';
 import 'unrecognised/unrecognised_entry.dart';
 
-class DesktopAction with DesktopSpecificationSharedMixin, GroupMixin, UnrecognisedEntriesMixin
-  implements FileWritable {
+class DesktopAction with DesktopSpecificationSharedMixin, GroupMixin,
+    UnrecognisedEntriesMixin implements FileWritable {
   DesktopAction({
     required DesktopGroup group,
     required SpecificationLocaleString name,
     SpecificationIconString? icon,
     SpecificationString? exec,
-    List<UnrecognisedEntry>? unrecognisedEntries
+    List<UnrecognisedEntry>? unrecognisedEntries,
   }) {
     this.group = group;
     this.name = name;
@@ -27,7 +27,8 @@ class DesktopAction with DesktopSpecificationSharedMixin, GroupMixin, Unrecognis
     this.unrecognisedEntries = unrecognisedEntries ?? <UnrecognisedEntry>[];
   }
 
-  static final RegExp groupRegExp = RegExp(r'(Desktop Action )(\w+)');
+  static const desktopActionPrefix = 'Desktop Action';
+  static final RegExp groupRegExp = RegExp(r'(' + desktopActionPrefix + r' [\w\s\d]+)');
 
   // To
   static Map<String, dynamic> toData(DesktopAction action) {
@@ -36,18 +37,18 @@ class DesktopAction with DesktopSpecificationSharedMixin, GroupMixin, Unrecognis
       DesktopSpecificationSharedMixin.fieldName: action.name.copyWith(),
       if (action.icon is SpecificationIconString) DesktopSpecificationSharedMixin.fieldIcon: action.icon!.copyWith(),
       if (action.exec is SpecificationString) DesktopSpecificationSharedMixin.fieldExec: action.exec!.copyWith(),
-      if (action.unrecognisedEntries.isNotEmpty) UnrecognisedEntriesMixin.fieldEntries: List.of(action.unrecognisedEntries)
+      UnrecognisedEntriesMixin.fieldEntries: List.of(action.unrecognisedEntries, growable: false),
     };
   }
 
   @override
-  writeToFile(File file) {
-    group.writeToFile(file, clearFile: false);
-    name.writeToFile(file);
-    icon?.writeToFile(file);
-    exec?.writeToFile(file);
+  writeToFile(File file, _) {
+    group.writeToFile(file, desktopActionPrefix);
+    name.writeToFile(file, DesktopSpecificationSharedMixin.fieldName);
+    icon?.writeToFile(file, DesktopSpecificationSharedMixin.fieldIcon);
+    exec?.writeToFile(file, DesktopSpecificationSharedMixin.fieldExec);
     for (var unrecognisedEntry in unrecognisedEntries) {
-      unrecognisedEntry.writeToFile(file);
+      unrecognisedEntry.writeToFile(file, _);
     }
   }
 
@@ -58,7 +59,7 @@ class DesktopAction with DesktopSpecificationSharedMixin, GroupMixin, Unrecognis
       name: map[DesktopSpecificationSharedMixin.fieldName],
       icon: map[DesktopSpecificationSharedMixin.fieldIcon],
       exec: map[DesktopSpecificationSharedMixin.fieldExec],
-      unrecognisedEntries: map[UnrecognisedEntriesMixin.fieldEntries]
+      unrecognisedEntries: map[UnrecognisedEntriesMixin.fieldEntries],
     );
   }
 
@@ -67,14 +68,14 @@ class DesktopAction with DesktopSpecificationSharedMixin, GroupMixin, Unrecognis
     DesktopGroup? group,
     SpecificationIconString? icon,
     SpecificationString? exec,
-    List<UnrecognisedEntry>? unrecognisedEntries
+    List<UnrecognisedEntry>? unrecognisedEntries,
   }) {
     return DesktopAction(
       name: name ?? this.name.copyWith(),
       group: group ?? this.group.copyWith(),
       icon: icon ?? this.icon?.copyWith(),
       exec: exec ?? this.exec?.copyWith(),
-      unrecognisedEntries: unrecognisedEntries ?? List.of(this.unrecognisedEntries)
+      unrecognisedEntries: unrecognisedEntries ?? List.of(this.unrecognisedEntries),
     );
   }
 
@@ -90,8 +91,8 @@ class DesktopAction with DesktopSpecificationSharedMixin, GroupMixin, Unrecognis
 
   @override
   int get hashCode => name.hashCode ^
-  group.hashCode ^
-  icon.hashCode ^
-  exec.hashCode ^
-  unrecognisedEntries.hashCode;
+    group.hashCode ^
+    icon.hashCode ^
+    exec.hashCode ^
+    unrecognisedEntries.hashCode;
 }

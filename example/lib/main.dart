@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 
-void main() {
+// todo: Propagate launch arguments
+// todo: DBUS
+// todo: References to Desktop Entry package API
+void main(List<String> arguments) {
   runApp(const MyApp());
 }
 

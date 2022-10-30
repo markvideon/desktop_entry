@@ -1,6 +1,6 @@
 import '../group_name.dart';
 
 mixin GroupMixin {
-  late final DesktopGroup group;
+  late DesktopGroup group;
   static const fieldGroup = 'groupName';
 }

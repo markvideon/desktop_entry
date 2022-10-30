@@ -40,6 +40,28 @@ bool stringToBool(String candidate) {
   return candidate.trim().toLowerCase() == 'true';
 }
 
+// Line may be of the forms:
+// - `Name=AppName`
+// - `Name[otherLang]=OtherLangAppName`
+extractLocalisedMap(String input) {
+  final regExp = RegExp(r'^(\w+)\[?([\w\d\s@*-]+)?]?=(.*)$', dotAll: true);
+
+  final match = regExp.firstMatch(input);
+  final groups = <String>[];
+
+  if (match == null) return groups;
+
+  for (int i = 1; i < match.groupCount; i++) {
+    if (match.group(i) is String) {
+      groups.add(match.group(i)!);
+    } else {
+      print('Warning: group $i was null.');
+    }
+  }
+
+  return groups;
+}
+
 List<String> extractContents(String input, String startChar, String endChar) {
   final regExp = RegExp(r'\' + startChar + r'(.*?)' + r'\' + endChar);
 
@@ -60,6 +82,50 @@ bool compareMaps(Map<String, dynamic> mapA, Map<String, dynamic> mapB) {
 
     if (mapB.containsKey(key)) {
       if (value is List) {
+        final mapAList = value;
+        final mapBList = mapB[key] as List;
+        mapAList.forEachIndexed((idx, listAElement) {
+          final listBElement = mapBList.elementAt(idx);
+
+          if (listAElement is Map) {
+            print('under map');
+            if (!const MapEquality().equals(listAElement, listBElement)) {
+              listAElement.forEach((mapKey, listAValue) {
+                final listBValue = listBElement[mapKey];
+                if (listAValue is List && !const ListEquality().equals(listAValue, listBValue)) {
+                  // print('At $key $mapKey, $listAValue (hashCode: ${listAValue.hashCode}, runtimeType: ${listAValue.runtimeType}) != $listBValue (hashCode: ${listBValue.hashCode}, runtimeType: ${listBValue.runtimeType})');
+                  listAValue.forEachIndexed((listIdx, listElement) {
+                    if (listBValue.elementAt(listIdx) != listAValue.elementAt(listIdx)) {
+                      print('List element unequal at $key $mapKey $listIdx, ${listAValue.elementAt(listIdx)} (hashCode: ${listAValue.elementAt(listIdx).hashCode}, runtimeType: ${listAValue.elementAt(listIdx).runtimeType}) != ${listBValue.elementAt(listIdx)} (hashCode: ${listBValue.elementAt(listIdx).hashCode}, runtimeType: ${listBValue.elementAt(listIdx).runtimeType})');
+                    }
+                  });
+                } else if (listAValue is Map && !const MapEquality().equals(listAValue, listBValue)) {
+                  print('At $key $mapKey, $listAValue (hashCode: ${listAValue.hashCode}, runtimeType: ${listAValue.runtimeType}) != $listBValue (hashCode: ${listBValue.hashCode}, runtimeType: ${listBValue.runtimeType})');
+                } else {
+                  if (listAValue != listBValue) {
+                    print('At $key $mapKey, $listAValue (hashCode: ${listAValue.hashCode}, runtimeType: ${listAValue.runtimeType}) != $listBValue (hashCode: ${listBValue.hashCode}, runtimeType: ${listBValue.runtimeType})');
+                  }
+                }
+              });
+              // print('$key $idx: $listAElement != $listBElement');
+              // print('${listAElement.toString().length} ... ${listBElement.toString().length}');
+
+            }
+          } else if (listAElement is List) {
+            print('under list');
+            if (!const ListEquality().equals(listAElement, listBElement)) {
+              print('$key $idx: $listAElement != $listBElement');
+              print('${listAElement.toString().length} ... ${listBElement.toString().length}');
+
+            }
+          } else {
+            if (listAElement!= listBElement) {
+              print('under else');
+              print('$key $idx: $listAElement != $listBElement');
+              print('${listAElement.toString().length} ... ${listBElement.toString().length}');
+            }
+          }
+        });
         equalityTestResult = const ListEquality().equals(value, mapB[key]);
       } else if (value is Map) {
         final mapX = value;
@@ -67,13 +133,13 @@ bool compareMaps(Map<String, dynamic> mapA, Map<String, dynamic> mapB) {
 
         mapX.forEach((key, value) {
           if (mapX[key] != mapY[key]) {
-            print('mapX[$key] != mapY[$key]. ${value} != ${value}');
-            print(mapX[key]?.elementConstructor() == mapY[key]?.elementConstructor());
+            print('mapX[$key] != mapY[$key]. ${mapX[key]} != ${mapY[key]}');
+            print('${mapX[key].toString().length} ... ${mapY[key].toString().length}');
           }
         });
-        print('Map hashcodes: ${value.hashCode}, ${mapB.hashCode}');
         equalityTestResult = const MapEquality().equals(value, mapB[key]);
       } else {
+        print('value is not list or map for key $key');
         equalityTestResult = value == mapB[key];
       }
 

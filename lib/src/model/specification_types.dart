@@ -7,8 +7,8 @@ import 'package:desktop_entry/desktop_entry.dart';
 import '../util/build_line.dart';
 import 'desktop_entry.dart';
 import 'interface/write_to_file.dart';
-import 'mixin/comments.dart';
-import 'mixin/supports_localisation.dart';
+import 'mixin/comments_mixin.dart';
+import 'mixin/supports_modifiers_mixin.dart';
 
 /// Dart [String]s are encoded in UTF-16 as per
 /// https://api.dart.dev/stable/2.18.1/dart-core/String-class.html
@@ -51,11 +51,11 @@ class SpecificationString extends DesktopEntryType<String> implements FileWritab
   int get hashCode => value.hashCode ^ comments.hashCode;
 
   @override
-  writeToFile(File file, {String? key}) {
+  writeToFile(File file, String? key) {
     for (var comment in comments) {
-      file.writeAsStringSync(buildComment(comment));
+      file.writeAsStringSync(buildComment(comment), mode: FileMode.writeOnlyAppend);
     }
-    file.writeAsStringSync(buildLine(key!, value));
+    file.writeAsStringSync(buildLine(key!, value), mode: FileMode.writeOnlyAppend);
   }
 
   @override
@@ -70,11 +70,11 @@ class SpecificationString extends DesktopEntryType<String> implements FileWritab
 ///  Values of type [SpecificationLocaleString] are user displayable, and are encoded in
 ///  UTF-8.
 class SpecificationLocaleString extends DesktopEntryType<String>
-  with SupportsLocalisationMixin<SpecificationLocaleString> implements FileWritable {
+  with SupportsModifiersMixin<SpecificationLocaleString> implements FileWritable {
   SpecificationLocaleString(super.value, {
     List<String>? comments,
     Map<String, SpecificationLocaleString>? localisedValues}) {
-    this.localisedValues = localisedValues ?? <String, SpecificationLocaleString>{};
+    this.modifiers = localisedValues ?? <String, SpecificationLocaleString>{};
     this.comments = comments ?? <String>[];
   }
 
@@ -85,7 +85,7 @@ class SpecificationLocaleString extends DesktopEntryType<String>
   }) {
     return SpecificationLocaleString(
       value ?? this.value,
-      localisedValues: localisedValues ?? Map.of(this.localisedValues),
+      localisedValues: localisedValues ?? Map.of(this.modifiers),
       comments: comments ?? List.of(this.comments)
     );
   }
@@ -95,20 +95,20 @@ class SpecificationLocaleString extends DesktopEntryType<String>
     return other is SpecificationLocaleString &&
       value == other.value &&
       const ListEquality().equals(comments, other.comments) &&
-      const MapEquality().equals(localisedValues, other.localisedValues);
+      const MapEquality().equals(modifiers, other.modifiers);
   }
 
   @override
-  int get hashCode => value.hashCode ^ localisedValues.hashCode ^ comments.hashCode;
+  int get hashCode => value.hashCode ^ modifiers.hashCode ^ comments.hashCode;
 
   @override
-  writeToFile(File file, {String? key}) {
+  writeToFile(File file, String? key) {
     for (var comment in comments) {
-      file.writeAsStringSync(buildComment(comment));
+      file.writeAsStringSync(buildComment(comment), mode: FileMode.writeOnlyAppend);
     }
-    file.writeAsStringSync(buildLine(key!, value.toString()));
-    localisedValues.forEach((localisedKey, localisedValue) {
-      file.writeAsStringSync(buildLine('$key[$localisedKey]', value.toString()));
+    file.writeAsStringSync(buildLine(key!, value.toString()), mode: FileMode.writeOnlyAppend);
+    modifiers.forEach((localisedKey, localisedValue) {
+      file.writeAsStringSync(buildLine('$key[$localisedKey]', value.toString()), mode: FileMode.writeOnlyAppend);
     });
   }
 
@@ -117,7 +117,7 @@ class SpecificationLocaleString extends DesktopEntryType<String>
     return 'SpecificationLocaleString{ '
       'value: $value, '
       'comments: $comments, '
-      'localisedValues: $localisedValues '
+      'localisedValues: $modifiers '
     '}';
   }
 }
@@ -127,9 +127,9 @@ class SpecificationLocaleString extends DesktopEntryType<String>
 ///  the algorithm described in the Icon Theme Specification.
 ///  Such values are not user-displayable, and are encoded in UTF-8.
 class SpecificationIconString extends DesktopEntryType<String>
-    with SupportsLocalisationMixin<SpecificationIconString> implements FileWritable {
+    with SupportsModifiersMixin<SpecificationIconString> implements FileWritable {
   SpecificationIconString(super.value, {Map<String, SpecificationIconString>? localisedValues, List<String>? comments}) {
-    this.localisedValues = localisedValues ?? <String, SpecificationIconString>{};
+    this.modifiers = localisedValues ?? <String, SpecificationIconString>{};
     this.comments = comments ?? <String>[];
   }
 
@@ -140,7 +140,7 @@ class SpecificationIconString extends DesktopEntryType<String>
   }) {
     return SpecificationIconString(
       value ?? this.value,
-      localisedValues: localisedValues ?? Map.of(this.localisedValues),
+      localisedValues: localisedValues ?? Map.of(modifiers),
       comments: comments ?? List.of(this.comments)
     );
   }
@@ -149,23 +149,23 @@ class SpecificationIconString extends DesktopEntryType<String>
   bool operator ==(Object other) {
     return other is SpecificationIconString &&
         value == other.value &&
-        const MapEquality().equals(localisedValues, other.localisedValues) &&
+        const MapEquality().equals(modifiers, other.modifiers) &&
         const ListEquality().equals(comments, other.comments);
   }
 
   @override
   int get hashCode => value.hashCode ^
-    localisedValues.hashCode ^
+  modifiers.hashCode ^
     comments.hashCode;
 
   @override
-  writeToFile(File file, {String? key}) {
+  writeToFile(File file, String? key) {
     for (var comment in comments) {
-      file.writeAsStringSync(buildComment(comment));
+      file.writeAsStringSync(buildComment(comment), mode: FileMode.writeOnlyAppend);
     }
-    file.writeAsStringSync(buildLine(key!, value.toString()));
-    localisedValues.forEach((localisedKey, localisedValue) {
-      file.writeAsStringSync(buildLine('$key[$localisedKey]', value.toString()));
+    file.writeAsStringSync(buildLine(key!, value.toString()), mode: FileMode.writeOnlyAppend);
+    modifiers.forEach((localisedKey, localisedValue) {
+      file.writeAsStringSync(buildLine('$key[$localisedKey]', value.toString()), mode: FileMode.writeOnlyAppend);
     });
   }
 
@@ -174,7 +174,7 @@ class SpecificationIconString extends DesktopEntryType<String>
     return 'SpecificationIconString{ '
       'value: $value, '
       'comments: $comments, '
-      'localisedValues: $localisedValues '
+      'localisedValues: $modifiers '
     '}';
   }
 }
@@ -206,11 +206,11 @@ class SpecificationBoolean extends DesktopEntryType<bool> implements FileWritabl
   int get hashCode => value.hashCode ^ comments.hashCode;
 
   @override
-  writeToFile(File file, {String? key}) {
+  writeToFile(File file, String? key) {
     for (var comment in comments) {
-      file.writeAsStringSync(buildComment(comment));
+      file.writeAsStringSync(buildComment(comment), mode: FileMode.writeOnlyAppend);
     }
-    file.writeAsStringSync(buildLine(key!, value.toString()));
+    file.writeAsStringSync(buildLine(key!, value.toString()), mode: FileMode.writeOnlyAppend);
   }
 
   @override
@@ -251,11 +251,11 @@ class SpecificationNumeric extends DesktopEntryType<double> implements FileWrita
   int get hashCode => value.hashCode ^ comments.hashCode;
 
   @override
-  writeToFile(File file, {String? key}) {
+  writeToFile(File file, String? key) {
     for (var comment in comments) {
       file.writeAsStringSync(buildComment(comment));
     }
-    file.writeAsStringSync(buildLine(key!, value.toString()));
+    file.writeAsStringSync(buildLine(key!, value.toString()), mode: FileMode.writeOnlyAppend);
   }
 
   @override
@@ -280,7 +280,6 @@ abstract class DesktopEntryType<T> with CommentsMixin {
 
 class SpecificationTypeList<T extends DesktopEntryType> extends ListBase<T> with CommentsMixin, FileWritable {
   SpecificationTypeList(List<T> primitiveList, {
-    required this.elementConstructor,
     List<String>? comments,
   }) {
     _internalList = List.of(primitiveList);
@@ -288,7 +287,6 @@ class SpecificationTypeList<T extends DesktopEntryType> extends ListBase<T> with
   }
 
   late List<T> _internalList;
-  final T Function() elementConstructor;
 
   @override
   int get length => _internalList.length;
@@ -304,31 +302,20 @@ class SpecificationTypeList<T extends DesktopEntryType> extends ListBase<T> with
   }
 
   @override
-  set length(int newLength) {
-    if (newLength > _internalList.length) {
-      _internalList = [
-        ..._internalList,
-        ...List.generate(newLength - _internalList.length, (index) => elementConstructor())
-      ];
-    } else if (newLength < _internalList.length) {
-      _internalList = _internalList.sublist(0, newLength);
-    }
-  }
+  set length(int newLength) => throw UnimplementedError();
 
   SpecificationTypeList<T> copyWith({
     List<T>? primitiveList,
-    T Function()? elementConstructor,
     List<String>? comments,
   }) {
     return SpecificationTypeList<T>(
       primitiveList ?? List.of(this),
-      elementConstructor: elementConstructor ?? this.elementConstructor,
       comments: comments ?? List.of(this.comments),
     );
   }
 
   @override
-  writeToFile(File file) {
+  writeToFile(File file, String? key) {
     // Write the comments associated with the [KeywordList] first.
     for (var comment in comments) {
       file.writeAsStringSync(buildComment(comment), mode: FileMode.writeOnlyAppend);
@@ -345,60 +332,57 @@ class SpecificationTypeList<T extends DesktopEntryType> extends ListBase<T> with
 
     // Write the primary elements
     final primaryValues = map((keyword) => keyword.value.toString()).toList(growable: false);
-    file.writeAsStringSync(buildListLine(DesktopEntry.fieldKeywords, primaryValues), mode: FileMode.writeOnlyAppend);
+    file.writeAsStringSync(buildListLine(key!, primaryValues), mode: FileMode.writeOnlyAppend);
   }
 
   @override
   bool operator ==(Object other) {
     return other is SpecificationTypeList<T> &&
+      const ListEquality().equals(this, other) &&
       const ListEquality().equals(_internalList, other._internalList) &&
-      const ListEquality().equals(comments, other.comments) &&
-      elementConstructor() == other.elementConstructor();
+      const ListEquality().equals(comments, other.comments);
   }
 
   @override
-  int get hashCode => _internalList.hashCode ^
-    comments.hashCode ^
-    elementConstructor().hashCode;
+  int get hashCode =>
+    super.hashCode ^
+    _internalList.hashCode ^
+    comments.hashCode;
 
   @override
   toString() {
-    print(elementConstructor());
     return 'SpecificationTypeList{ '
+      'externalList: ${map((element) => element.toString())}, '
       'internalList: ${_internalList.map((e) => e.toString())}, '
       'comments: $comments, '
-      'elementConstructor: ${elementConstructor().hashCode} '
     '}';
   }
 }
 
 class LocalisableSpecificationTypeList<T extends DesktopEntryType>
-    extends SpecificationTypeList<T> with SupportsLocalisationMixin<List<T>> {
+    extends SpecificationTypeList<T> with SupportsModifiersMixin<List<T>> {
   LocalisableSpecificationTypeList(super.primitiveList, {
-    required super.elementConstructor,
     super.comments,
     Map<String, List<T>>? localisedValues
   }) {
-    this.localisedValues = localisedValues ?? {};
+    modifiers = localisedValues ?? {};
   }
 
   @override
   LocalisableSpecificationTypeList<T> copyWith({
     List<T>? primitiveList,
-    T Function()? elementConstructor,
     List<String>? comments,
     Map<String, List<T>>? localisedValues
   }) {
     return LocalisableSpecificationTypeList<T>(
       primitiveList ?? List.of(this),
-      elementConstructor: elementConstructor ?? this.elementConstructor,
       comments: comments ?? List.of(this.comments),
-      localisedValues: localisedValues ?? Map.of(this.localisedValues)
+      localisedValues: localisedValues ?? Map.of(modifiers)
     );
   }
 
   @override
-  writeToFile(File file) {
+  writeToFile(File file, String? key) {
     // Write the comments associated with the [KeywordList] first.
     for (var comment in comments) {
       file.writeAsStringSync(buildComment(comment), mode: FileMode.writeOnlyAppend);
@@ -415,10 +399,10 @@ class LocalisableSpecificationTypeList<T extends DesktopEntryType>
 
     // Write the primary elements
     final primaryValues = map((keyword) => keyword.value.toString()).toList(growable: false);
-    file.writeAsStringSync(buildListLine(DesktopEntry.fieldKeywords, primaryValues), mode: FileMode.writeOnlyAppend);
+    file.writeAsStringSync(buildListLine(key!, primaryValues), mode: FileMode.writeOnlyAppend);
 
     // Write the localised elements, with their comments above
-    localisedValues.forEach((languageModifier, languageSpecificListOfKeywords) {
+    modifiers.forEach((languageModifier, languageSpecificListOfKeywords) {
       // Write the comments associated with the primary elements (if any)
       for (var languageSpecificKeyword in languageSpecificListOfKeywords) {
         for (var keywordComment in languageSpecificKeyword.comments) {
@@ -429,7 +413,7 @@ class LocalisableSpecificationTypeList<T extends DesktopEntryType>
       }
 
       final languageSpecificValues = languageSpecificListOfKeywords.map((e) => e.value.toString()).toList(growable: false);
-      file.writeAsStringSync(buildListLine('${DesktopEntry.fieldKeywords}[$languageModifier]', languageSpecificValues), mode: FileMode.writeOnlyAppend);
+      file.writeAsStringSync(buildListLine('$key[$languageModifier]', languageSpecificValues), mode: FileMode.writeOnlyAppend);
     });
   }
 
@@ -438,22 +422,19 @@ class LocalisableSpecificationTypeList<T extends DesktopEntryType>
       other is LocalisableSpecificationTypeList<T> &&
       const ListEquality().equals(_internalList, other._internalList) &&
       const ListEquality().equals(comments, other.comments) &&
-      elementConstructor() == other.elementConstructor() &&
-      const MapEquality().equals(localisedValues, other.localisedValues);
+      const MapEquality().equals(modifiers, other.modifiers);
 
   @override
   int get hashCode => _internalList.hashCode ^
     comments.hashCode ^
-    elementConstructor().hashCode ^
-    localisedValues.hashCode;
+  modifiers.hashCode;
 
   @override
   toString() {
     return 'LocalisableSpecificationTypeList{ '
         'internalList: ${_internalList.map((e) => e.toString())}, '
-        'localisedValues: ${localisedValues.toString()}, '
+        'localisedValues: ${modifiers.toString()}, '
         'comments: $comments, '
-        'elementConstructor: ${elementConstructor().hashCode} '
     '}';
   }
 }

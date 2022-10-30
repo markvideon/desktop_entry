@@ -49,17 +49,19 @@ class DesktopContents {
     // Create file
     final tempDir = await getTemporaryDirectory();
     final pathContext = Context(style: Style.posix);
-    final absPath = pathContext.join(tempDir.path, '$name.desktop');
+    final absPath = pathContext.join(tempDir.path, '$name');
     final file = File(absPath);
 
-    contents.entry.writeToFile(file);
+    // Clear the file
+    file.writeAsStringSync('');
 
+    contents.entry.writeToFile(file, null);
     for (var action in contents.actions) {
-      action.writeToFile(file);
+      action.writeToFile(file, null);
     }
 
     for (var group in contents.unrecognisedGroups) {
-      group.writeToFile(file);
+      group.writeToFile(file, null);
     }
 
     return file;
@@ -68,9 +70,9 @@ class DesktopContents {
   static Map<String, dynamic> toData(DesktopContents contents) {
     return <String, dynamic> {
       fieldEntry: DesktopEntry.toData(contents.entry),
-      if (contents.actions.isNotEmpty) fieldActions: contents.actions.map((e) => DesktopAction.toData(e)).toList(growable: false),
-      if (contents.unrecognisedGroups.isNotEmpty) fieldUnrecognisedGroups: contents.unrecognisedGroups.map((e) => UnrecognisedGroup.toData(e)).toList(growable: false),
-      if (contents.trailingComments.isNotEmpty) fieldTrailingComments: List.of(contents.trailingComments)
+      fieldActions: contents.actions.map((e) => DesktopAction.toData(e)).toList(growable: false),
+      fieldUnrecognisedGroups: contents.unrecognisedGroups.map((e) => UnrecognisedGroup.toData(e)).toList(growable: false),
+      fieldTrailingComments: List.of(contents.trailingComments)
     };
   }
 
@@ -78,8 +80,8 @@ class DesktopContents {
   factory DesktopContents.fromMap(Map<String, dynamic> map) {
     return DesktopContents(
       entry: DesktopEntry.fromMap(map[fieldEntry]),
-      actions: (map[fieldActions] as Iterable).map((e) => DesktopAction.fromMap(e)).toList(growable: false),
-      unrecognisedGroups: (map[fieldUnrecognisedGroups] as Iterable).map((e) => UnrecognisedGroup.fromMap(e)).toList(growable: false),
+      actions: (map[fieldActions] as Iterable<Map<String, dynamic>>).map((e) => DesktopAction.fromMap(e)).toList(growable: false),
+      unrecognisedGroups: (map[fieldUnrecognisedGroups] as Iterable<Map<String, dynamic>>).map((e) => UnrecognisedGroup.fromMap(e)).toList(growable: false),
       trailingComments: map[fieldTrailingComments] != null ? List.of(map[fieldTrailingComments]) : <String>[]
     );
   }
@@ -102,7 +104,7 @@ class DesktopContents {
     for (var line in lines) {
       i++;
       final effectiveLine = line.trim();
-
+      // print(effectiveLine);
       final isCommentLine = effectiveLine.startsWith('#') || effectiveLine.isEmpty;
       final isGroupLine = (effectiveLine.startsWith('[') && effectiveLine.endsWith(']'));
 
@@ -134,25 +136,24 @@ class DesktopContents {
             // Second match is `Desktop Action `
             // Third match is `x`
             final actionGroupName = DesktopGroup(
-                DesktopAction.groupRegExp.firstMatch(extractedGroupName.first)!.group(2)!,
+                DesktopAction.groupRegExp.firstMatch(extractedGroupName.first)!.group(1)!,
                 comments: relevantComments);
             final actionMap = <String, dynamic> {
               GroupMixin.fieldGroup: actionGroupName,
               UnrecognisedEntriesMixin.fieldEntries: <UnrecognisedEntry>[]
             };
-            map[fieldActions] = [...map[fieldActions], actionMap];
+            map[fieldActions] = <Map<String, dynamic>>[...map[fieldActions], actionMap];
             activeActionIdx++;
           } 
           // Unrecognised Group
           else {
             parseMode = DesktopSpecificationParseMode.unrecognisedGroup;
-
             final unrecognisedGroupName = DesktopGroup(extractedGroupName.first, comments: relevantComments);
             final unrecognisedGroupMap = <String, dynamic>{
               GroupMixin.fieldGroup: unrecognisedGroupName,
               UnrecognisedEntriesMixin.fieldEntries: <UnrecognisedEntry>[]
             };
-            map[fieldUnrecognisedGroups] = [...map[fieldUnrecognisedGroups], unrecognisedGroupMap];
+            map[fieldUnrecognisedGroups] = <Map<String, dynamic>>[...map[fieldUnrecognisedGroups], unrecognisedGroupMap];
             activeUnrecognisedGroupIdx++;
           }
 
@@ -173,131 +174,137 @@ class DesktopContents {
                 case DesktopEntry.fieldType:
                   map[fieldEntry][DesktopEntry.fieldType] = SpecificationString(possibleMapEntry.value, comments: relevantComments);
                   relevantComments = <String>[];
-                  break;
+                  continue;
                 case DesktopEntry.fieldVersion:
                   map[fieldEntry][DesktopEntry.fieldVersion] = SpecificationString(possibleMapEntry.value, comments: relevantComments);
                   relevantComments = <String>[];
-                  break;
+                  continue;
+                // todo: Support locale
                 case DesktopSpecificationSharedMixin.fieldName:
+                  bool mapExists = map[fieldEntry] is Map;
+                  
+                  // Check if the map key exists
+                  if (possibleMapEntry.modifier is String) {
+                    // if the map entry exists, copy the value currently at the key, adding the new localised value
+                    // otherwise create a SpecificationLocaleString with an empty value?
+                  } else {
+                    // As before
+                  }
                   map[fieldEntry][DesktopSpecificationSharedMixin.fieldName] = SpecificationLocaleString(possibleMapEntry.value, comments: relevantComments);
                   relevantComments = <String>[];
-                  break;
+                  continue;
+                // todo: Support locale
                 case DesktopEntry.fieldGenericName:
                   map[fieldEntry][DesktopEntry.fieldGenericName] = SpecificationLocaleString(possibleMapEntry.value, comments: relevantComments);
                   relevantComments = <String>[];
-                  break;
+                  continue;
                 case DesktopEntry.fieldNoDisplay:
-                  map[fieldEntry][DesktopEntry.fieldNoDisplay] = SpecificationBoolean(possibleMapEntry.value, comments: relevantComments);
+                  map[fieldEntry][DesktopEntry.fieldNoDisplay] = SpecificationBoolean(stringToBool(possibleMapEntry.value), comments: relevantComments);
                   relevantComments = <String>[];
-                  break;
+                  continue;
+                // todo: Support locale
                 case DesktopEntry.fieldComment:
                   map[fieldEntry][DesktopEntry.fieldComment] = SpecificationLocaleString(possibleMapEntry.value, comments: relevantComments);
                   relevantComments = <String>[];
-                  break;
+                  continue;
                 case DesktopSpecificationSharedMixin.fieldIcon:
                   map[fieldEntry][DesktopSpecificationSharedMixin.fieldIcon] = SpecificationIconString(possibleMapEntry.value, comments: relevantComments);
                   relevantComments = <String>[];
-                  break;
+                  continue;
                 case DesktopEntry.fieldHidden:
-                  map[fieldEntry][DesktopEntry.fieldHidden] = SpecificationBoolean(possibleMapEntry.value, comments: relevantComments);
+                  map[fieldEntry][DesktopEntry.fieldHidden] = SpecificationBoolean(stringToBool(possibleMapEntry.value), comments: relevantComments);
                   relevantComments = <String>[];
-                  break;
+                  continue;
                 case DesktopEntry.fieldOnlyShowIn:
                   map[fieldEntry][DesktopEntry.fieldOnlyShowIn] = SpecificationTypeList<SpecificationString>(
                       (possibleMapEntry.value as List).map((e) => SpecificationString(e)).toList(growable: false),
                       comments: relevantComments,
-                      elementConstructor: () => SpecificationString('')
                   );
                   relevantComments = <String>[];
-                  break;
+                  continue;
                 case DesktopEntry.fieldNotShowIn:
                   map[fieldEntry][DesktopEntry.fieldNotShowIn] = SpecificationTypeList<SpecificationString>(
                       (possibleMapEntry.value as List).map((e) => SpecificationString(e)).toList(growable: false),
                       comments: relevantComments,
-                      elementConstructor: () => SpecificationString('')
                   );
                   relevantComments = <String>[];
-                  break;
+                  continue;
                 case DesktopEntry.fieldDBusActivatable:
-                  map[fieldEntry][DesktopEntry.fieldDBusActivatable] = SpecificationBoolean(possibleMapEntry.value, comments: relevantComments);
+                  map[fieldEntry][DesktopEntry.fieldDBusActivatable] = SpecificationBoolean(stringToBool(possibleMapEntry.value), comments: relevantComments);
                   relevantComments = <String>[];
-                  break;
+                  continue;
                 case DesktopEntry.fieldTryExec:
                   map[fieldEntry][DesktopEntry.fieldTryExec] = SpecificationString(possibleMapEntry.value, comments: relevantComments);
                   relevantComments = <String>[];
-                  break;
+                  continue;
                 case DesktopSpecificationSharedMixin.fieldExec:
                   map[fieldEntry][DesktopSpecificationSharedMixin.fieldExec] = SpecificationString(possibleMapEntry.value, comments: relevantComments);
                   relevantComments = <String>[];
-                  break;
+                  continue;
                 case DesktopEntry.fieldPath:
                   map[fieldEntry][DesktopEntry.fieldPath] = SpecificationString(possibleMapEntry.value, comments: relevantComments);
                   relevantComments = <String>[];
-                  break;
+                  continue;
                 case DesktopEntry.fieldTerminal:
-                  map[fieldEntry][DesktopEntry.fieldTerminal] = SpecificationBoolean(possibleMapEntry.value, comments: relevantComments);
+                  map[fieldEntry][DesktopEntry.fieldTerminal] = SpecificationBoolean(stringToBool(possibleMapEntry.value), comments: relevantComments);
                   relevantComments = <String>[];
-                  break;
+                  continue;
                 case DesktopEntry.fieldActions:
                   map[fieldEntry][DesktopEntry.fieldActions] = SpecificationTypeList<SpecificationString>(
                     (possibleMapEntry.value as List).map((e) => SpecificationString(e)).toList(growable: false),
                     comments: relevantComments,
-                    elementConstructor: () => SpecificationString('')
                   );
                   relevantComments = <String>[];
-                  break;
+                  continue;
                 case DesktopEntry.fieldMimeType:
                   map[fieldEntry][DesktopEntry.fieldMimeType] = SpecificationTypeList<SpecificationString>(
                       (possibleMapEntry.value as List).map((e) => SpecificationString(e)).toList(growable: false),
                       comments: relevantComments,
-                      elementConstructor: () => SpecificationString('')
                   );
                   relevantComments = <String>[];
-                  break;
+                  continue;
                 case DesktopEntry.fieldCategories:
                   map[fieldEntry][DesktopEntry.fieldCategories] = SpecificationTypeList<SpecificationString>(
                     (possibleMapEntry.value as List).map((e) => SpecificationString(e)).toList(growable: false),
                     comments: relevantComments,
-                    elementConstructor: () => SpecificationString('')
                   );
                   relevantComments = <String>[];
-                  break;
+                  continue;
                 case DesktopEntry.fieldImplements:
                   map[fieldEntry][DesktopEntry.fieldImplements] = SpecificationTypeList<SpecificationString>(
                       (possibleMapEntry.value as List).map((e) => SpecificationString(e)).toList(growable: false),
                       comments: relevantComments,
-                      elementConstructor: () => SpecificationString('')
                   );
                   relevantComments = <String>[];
-                  break;
+                  continue;
+                // todo: Support locales
                 case DesktopEntry.fieldKeywords:
                   map[fieldEntry][DesktopEntry.fieldKeywords] = LocalisableSpecificationTypeList<SpecificationLocaleString>(
                     (possibleMapEntry.value as Iterable).map((e) => SpecificationLocaleString(e)).toList(growable: false),
-                    elementConstructor: () => SpecificationLocaleString(''),
                     comments: relevantComments
                   );
                   relevantComments = <String>[];
-                  break;
+                  continue;
                 case DesktopEntry.fieldStartupNotify:
-                  map[fieldEntry][DesktopEntry.fieldStartupNotify] = SpecificationBoolean(possibleMapEntry.value, comments: relevantComments);
+                  map[fieldEntry][DesktopEntry.fieldStartupNotify] = SpecificationBoolean(stringToBool(possibleMapEntry.value), comments: relevantComments);
                   relevantComments = <String>[];
-                  break;
+                  continue;
                 case DesktopEntry.fieldStartupWmClass:
                   map[fieldEntry][DesktopEntry.fieldStartupWmClass] = SpecificationString(possibleMapEntry.value, comments: relevantComments);
                   relevantComments = <String>[];
-                  break;
+                  continue;
                 case DesktopEntry.fieldUrl:
                   map[fieldEntry][DesktopEntry.fieldUrl] = SpecificationString(possibleMapEntry.value, comments: relevantComments);
                   relevantComments = <String>[];
-                  break;
+                  continue;
                 case DesktopEntry.fieldPrefersNonDefaultGpu:
-                  map[fieldEntry][DesktopEntry.fieldPrefersNonDefaultGpu] = SpecificationBoolean(possibleMapEntry.value, comments: relevantComments);
+                  map[fieldEntry][DesktopEntry.fieldPrefersNonDefaultGpu] = SpecificationBoolean(stringToBool(possibleMapEntry.value), comments: relevantComments);
                   relevantComments = <String>[];
-                  break;
+                  continue;
                 case DesktopEntry.fieldSingleMainWindow:
-                  map[fieldEntry][DesktopEntry.fieldSingleMainWindow] = SpecificationBoolean(possibleMapEntry.value, comments: relevantComments);
+                  map[fieldEntry][DesktopEntry.fieldSingleMainWindow] = SpecificationBoolean(stringToBool(possibleMapEntry.value), comments: relevantComments);
                   relevantComments = <String>[];
-                  break;
+                  continue;
                 default:
                   final unrecognisedEntry = UnrecognisedEntry(
                     key: possibleMapEntry.key,
@@ -306,24 +313,25 @@ class DesktopContents {
                   );
                   (map[fieldEntry][UnrecognisedEntriesMixin.fieldEntries] as List).add(unrecognisedEntry);
                   relevantComments = <String>[];
-                  break;
+                  continue;
               }
-              break;
+              continue;
             // todo:
             case DesktopSpecificationParseMode.desktopAction:
               switch (possibleMapEntry.key) {
                 case DesktopSpecificationSharedMixin.fieldExec:
                   (map[fieldActions] as List)[activeActionIdx][DesktopSpecificationSharedMixin.fieldExec] = SpecificationString(possibleMapEntry.value, comments: relevantComments);
                   relevantComments = <String>[];
-                  break;
+                  continue;
                 case DesktopSpecificationSharedMixin.fieldIcon:
                   (map[fieldActions] as List)[activeActionIdx][DesktopSpecificationSharedMixin.fieldIcon] = SpecificationIconString(possibleMapEntry.value, comments: relevantComments);
                   relevantComments = <String>[];
-                  break;
+                  continue;
+                // todo: Support locales
                 case DesktopSpecificationSharedMixin.fieldName:
                   (map[fieldActions] as List)[activeActionIdx][DesktopSpecificationSharedMixin.fieldName] = SpecificationLocaleString(possibleMapEntry.value, comments: relevantComments);
                   relevantComments = <String>[];
-                  break;
+                  continue;
                 default:
                   final unrecognisedEntry = UnrecognisedEntry(
                     key: possibleMapEntry.key,
@@ -331,19 +339,21 @@ class DesktopContents {
                     comments: relevantComments
                   );
                   ((map[fieldActions] as List)[activeActionIdx][UnrecognisedEntriesMixin.fieldEntries] as List<UnrecognisedEntry>).add(unrecognisedEntry);
-                  break;
+                  relevantComments = <String>[];
+                  continue;
               }
-              break;
             case DesktopSpecificationParseMode.unrecognisedGroup:
               final unrecognisedEntry = UnrecognisedEntry(
                   key: possibleMapEntry.key,
                   values: possibleMapEntry.value is List<String> ? possibleMapEntry.value : <String>[possibleMapEntry.value],
                   comments: relevantComments
               );
+              print('Unrecognised groups lookup: ${map[fieldUnrecognisedGroups]}');
               ((map[fieldUnrecognisedGroups] as List).elementAt(activeUnrecognisedGroupIdx)[UnrecognisedEntriesMixin.fieldEntries] as List<UnrecognisedEntry>).add(unrecognisedEntry);
-              break;
+              relevantComments = <String>[];
+              continue;
           }
-          relevantComments = <String>[];
+          //relevantComments = <String>[];
         }
       }
     }
@@ -354,7 +364,7 @@ class DesktopContents {
   }
 
   factory DesktopContents.fromFile(File file) {
-    final lines = file.readAsLinesSync().where((element) => element.trim().isNotEmpty);
+    final lines = file.readAsLinesSync();
     return DesktopContents.fromLines(lines);
   }
 
@@ -368,5 +378,8 @@ class DesktopContents {
   }
 
   @override
-  int get hashCode => super.hashCode;
+  int get hashCode => actions.hashCode ^
+  unrecognisedGroups.hashCode ^
+  trailingComments.hashCode ^
+  entry.hashCode;
 }

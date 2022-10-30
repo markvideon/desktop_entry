@@ -1,3 +1,5 @@
+import '../model/variant_map_entry.dart';
+
 List<String> parseRow(String input, String delimiter) {
   final nonEscapedMatches = delimiter.allMatches(input)
       .where((match) => input[match.start - 1] != r'\');
@@ -34,21 +36,24 @@ List<String> parseRow(String input, String delimiter) {
   return parts;
 }
 
-final _parseKeyValueRegExp = RegExp(r'([\w-]+)=(.+)');
+// The good one!
+final _parseKeyValueRegExp = RegExp(r'^([\w-]+)\[?([\w\d\s@*-]+)?\]?=(.*)$');
 
-MapEntry<String, dynamic>? parseLine(String line) {
+VariantMapEntry<dynamic>? parseLine(String line) {
   String effectiveLine = line.trim();
   final match = _parseKeyValueRegExp.firstMatch(effectiveLine);
 
-  if (match == null || match.group(1) == null || match.group(2) == null) {
+  if (match == null || match.group(1) == null || match.group(3) == null) {
     return null;
   }
 
-  final possibleMultipleValues = parseRow(match.group(2)!, ';');
+  final possibleMultipleValues = parseRow(match.group(3)!, ';');
 
-  return MapEntry(
+  return VariantMapEntry(
       match.group(1)!,
       possibleMultipleValues.length == 1 ?
       possibleMultipleValues.first :
-      possibleMultipleValues);
+      possibleMultipleValues,
+    modifier: match.group(2)
+  );
 }

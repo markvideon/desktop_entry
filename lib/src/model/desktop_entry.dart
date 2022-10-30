@@ -1,5 +1,5 @@
 // Reference: https://specifications.freedesktop.org/desktop-entry-spec/desktop-entry-spec-latest.html
-import 'dart:io' if (dart.library.html) 'dart:html' show File;
+import 'dart:io' if (dart.library.html) 'dart:html' show File, FileMode;
 
 import 'package:collection/collection.dart' show ListEquality;
 import 'mixin/unrecognised_entries_mixin.dart';
@@ -381,17 +381,17 @@ class DesktopEntry with DesktopSpecificationSharedMixin, UnrecognisedEntriesMixi
   }
 
   @override
-  writeToFile(File file) {
-    group.writeToFile(file);
-    type.writeToFile(file, key: fieldType);
-    version?.writeToFile(file, key: fieldVersion);
-    name.writeToFile(file, key: DesktopSpecificationSharedMixin.fieldName);
-    genericName?.writeToFile(file, key: fieldGenericName);
-    noDisplay?.writeToFile(file, key: fieldNoDisplay);
-    comment?.writeToFile(file, key: fieldComment);
-    icon?.writeToFile(file, key: DesktopSpecificationSharedMixin.fieldIcon);
-    hidden?.writeToFile(file, key: fieldHidden);
+  writeToFile(File file, String? _) {
+    group.writeToFile(file, _);
+    type.writeToFile(file, fieldType);
+    version?.writeToFile(file, fieldVersion);
+    name.writeToFile(file, DesktopSpecificationSharedMixin.fieldName);
+    genericName?.writeToFile(file, fieldGenericName);
+    noDisplay?.writeToFile(file, fieldNoDisplay);
 
+    comment?.writeToFile(file, fieldComment);
+    icon?.writeToFile(file, DesktopSpecificationSharedMixin.fieldIcon);
+    hidden?.writeToFile(file, fieldHidden);
     if (onlyShowIn is SpecificationTypeList<SpecificationString> && onlyShowIn!.isNotEmpty) {
       final onlyShowInComments = onlyShowIn!.map((e) => e.comments)
         .fold(<String>[], (previousValue, element) => [...previousValue, ...element])
@@ -399,12 +399,12 @@ class DesktopEntry with DesktopSpecificationSharedMixin, UnrecognisedEntriesMixi
         .toList(growable: false);
 
       for (var comment in onlyShowInComments) {
-        file.writeAsStringSync(comment);
+        file.writeAsStringSync(comment, mode: FileMode.writeOnlyAppend);
       }
 
       final onlyShowInValues = onlyShowIn!.map((e) => e.value).toList(growable: false);
       final onlyShowInLine = buildListLine(fieldOnlyShowIn, onlyShowInValues);
-      file.writeAsStringSync(onlyShowInLine);
+      file.writeAsStringSync(onlyShowInLine, mode: FileMode.writeOnlyAppend);
     }
     if (notShowIn is SpecificationTypeList<SpecificationString> && notShowIn!.isNotEmpty) {
       final notShowInComments = notShowIn!.map((e) => e.comments)
@@ -413,19 +413,19 @@ class DesktopEntry with DesktopSpecificationSharedMixin, UnrecognisedEntriesMixi
           .toList(growable: false);
 
       for (var comment in notShowInComments) {
-        file.writeAsStringSync(comment);
+        file.writeAsStringSync(comment, mode: FileMode.writeOnlyAppend);
       }
 
       final notShowInValues = notShowIn!.map((e) => e.value).toList(growable: false);
       final notShowInLine = buildListLine(fieldNotShowIn, notShowInValues);
-      file.writeAsStringSync(notShowInLine);
+      file.writeAsStringSync(notShowInLine, mode: FileMode.writeOnlyAppend);
     }
 
-    dBusActivatable?.writeToFile(file, key: fieldDBusActivatable);
-    tryExec?.writeToFile(file, key: fieldTryExec);
-    exec?.writeToFile(file, key: DesktopSpecificationSharedMixin.fieldExec);
-    path?.writeToFile(file, key: fieldPath);
-    terminal?.writeToFile(file, key: fieldTerminal);
+    dBusActivatable?.writeToFile(file, fieldDBusActivatable);
+    tryExec?.writeToFile(file, fieldTryExec);
+    exec?.writeToFile(file, DesktopSpecificationSharedMixin.fieldExec);
+    path?.writeToFile(file, fieldPath);
+    terminal?.writeToFile(file, fieldTerminal);
 
     if (actions is SpecificationTypeList<SpecificationString> && actions!.isNotEmpty) {
       final actionComments = actions!.map((e) => e.comments)
@@ -434,12 +434,12 @@ class DesktopEntry with DesktopSpecificationSharedMixin, UnrecognisedEntriesMixi
           .toList(growable: false);
 
       for (var comment in actionComments) {
-        file.writeAsStringSync(comment);
+        file.writeAsStringSync(comment, mode: FileMode.writeOnlyAppend);
       }
 
       final actionValues = actions!.map((e) => e.value).toList(growable: false);
       final actionLine = buildListLine(fieldActions, actionValues);
-      file.writeAsStringSync(actionLine);
+      file.writeAsStringSync(actionLine, mode: FileMode.writeOnlyAppend);
     }
 
     if (mimeType is SpecificationTypeList<SpecificationString> && mimeType!.isNotEmpty) {
@@ -449,12 +449,12 @@ class DesktopEntry with DesktopSpecificationSharedMixin, UnrecognisedEntriesMixi
           .toList(growable: false);
 
       for (var comment in mimeTypeComments) {
-        file.writeAsStringSync(comment);
+        file.writeAsStringSync(comment, mode: FileMode.writeOnlyAppend);
       }
 
       final mimeTypeValues = mimeType!.map((e) => e.value).toList(growable: false);
       final mimeTypeLine = buildListLine(fieldMimeType, mimeTypeValues);
-      file.writeAsStringSync(mimeTypeLine);
+      file.writeAsStringSync(mimeTypeLine, mode: FileMode.writeOnlyAppend);
     }
 
     if (categories is SpecificationTypeList<SpecificationString> && categories!.isNotEmpty) {
@@ -464,12 +464,12 @@ class DesktopEntry with DesktopSpecificationSharedMixin, UnrecognisedEntriesMixi
           .toList(growable: false);
 
       for (var comment in categoriesComments) {
-        file.writeAsStringSync(comment);
+        file.writeAsStringSync(comment, mode: FileMode.writeOnlyAppend);
       }
 
       final categoriesValues = categories!.map((e) => e.value).toList(growable: false);
       final categoriesLine = buildListLine(fieldCategories, categoriesValues);
-      file.writeAsStringSync(categoriesLine);
+      file.writeAsStringSync(categoriesLine, mode: FileMode.writeOnlyAppend);
     }
 
     if (implements is SpecificationTypeList<SpecificationString> && implements!.isNotEmpty) {
@@ -479,21 +479,26 @@ class DesktopEntry with DesktopSpecificationSharedMixin, UnrecognisedEntriesMixi
           .toList(growable: false);
 
       for (var comment in implementsComments) {
-        file.writeAsStringSync(comment);
+        file.writeAsStringSync(comment, mode: FileMode.writeOnlyAppend);
       }
 
       final implementsValues = implements!.map((e) => e.value).toList(growable: false);
       final implementsLine = buildListLine(fieldImplements, implementsValues);
-      file.writeAsStringSync(implementsLine);
+      file.writeAsStringSync(implementsLine, mode: FileMode.writeOnlyAppend);
     }
 
-    keywords?.writeToFile(file);
+    keywords?.writeToFile(file, fieldKeywords);
 
-    startupNotify?.writeToFile(file, key: fieldStartupNotify);
-    startupWmClass?.writeToFile(file, key: fieldStartupWmClass);
-    url?.writeToFile(file, key: fieldUrl);
-    prefersNonDefaultGpu?.writeToFile(file, key: fieldPrefersNonDefaultGpu);
-    singleMainWindow?.writeToFile(file, key: fieldSingleMainWindow);
+    startupNotify?.writeToFile(file, fieldStartupNotify);
+    startupWmClass?.writeToFile(file, fieldStartupWmClass);
+    url?.writeToFile(file, fieldUrl);
+    prefersNonDefaultGpu?.writeToFile(file, fieldPrefersNonDefaultGpu);
+    singleMainWindow?.writeToFile(file, fieldSingleMainWindow);
+
+    for (var element in unrecognisedEntries) {
+      print('writing unrecognised entry to ifle');
+      element.writeToFile(file, _);
+    }
   }
 
   // From
@@ -525,6 +530,7 @@ class DesktopEntry with DesktopSpecificationSharedMixin, UnrecognisedEntriesMixi
       url: map[fieldUrl],
       prefersNonDefaultGpu: map[fieldPrefersNonDefaultGpu],
       singleMainWindow: map[fieldSingleMainWindow],
+      unrecognisedEntries: map[UnrecognisedEntriesMixin.fieldEntries]
     );
   }
 }

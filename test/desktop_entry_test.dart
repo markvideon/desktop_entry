@@ -1,4 +1,3 @@
-import 'dart:convert';
 import 'dart:developer';
 import 'dart:io' if (dart.library.html) 'dart:html' show Directory, File, Platform;
 
@@ -14,7 +13,7 @@ final manualDefinitionExample = DesktopContents(
     group: DesktopGroup('Desktop Entry'),
     version: SpecificationString('1.0'),
     unrecognisedEntries: <UnrecognisedEntry>[
-      UnrecognisedEntry(key: 'UnknownKey', values: ['UnknownValue'])
+      UnrecognisedEntry(key: 'UnknownKey', values: ['UnknownValue'], comments: <String>[])
     ],
     type: SpecificationString('Application'),
     name: SpecificationLocaleString('Foo Viewer'),
@@ -25,44 +24,53 @@ final manualDefinitionExample = DesktopContents(
     mimeType: SpecificationTypeList<SpecificationString>(
       <SpecificationString>[
         SpecificationString('image/x-foo'),
-        SpecificationString('x-scheme-hander/fooview'),
+        SpecificationString('x-scheme-handler/fooview'),
       ],
-      elementConstructor: () => SpecificationString('')
     ),
     actions: SpecificationTypeList<SpecificationString>(
       <SpecificationString>[
         SpecificationString('Gallery'),
         SpecificationString('Create')
       ],
-      elementConstructor: () => SpecificationString('')
     )
   ),
   unrecognisedGroups: <UnrecognisedGroup>[
     UnrecognisedGroup(
-      group: DesktopGroup('UnknownGroup'),
+      group: DesktopGroup(
+        'X-UnknownGroup',
+        comments: <String>['']
+      ),
       entries: <UnrecognisedEntry>[
-        UnrecognisedEntry(key: 'UnknownGroup', values: ['Unknown Value'])
+        UnrecognisedEntry(
+          key: 'X-UnknownGroup',
+          values: ['Unknown Value'],
+          comments: <String>[]
+        )
       ]
     ),
     UnrecognisedGroup(
-      group: DesktopGroup('EmptyGroup'),
+      group: DesktopGroup(
+        'X-EmptyGroup',
+        comments: <String>['']
+      ),
       entries: <UnrecognisedEntry>[
 
-      ]
+      ],
     ),
   ],
   actions: <DesktopAction>[
     DesktopAction(
       group: DesktopGroup(
         'Desktop Action Gallery',
-        comments: ['', 'comment line above desktop action gallery', '']
+        comments: ['', '# comment line above desktop action gallery', '']
       ),
       exec: SpecificationString('fooview --gallery'),
       name: SpecificationLocaleString('Browse Gallery'),
     ),
     DesktopAction(
       group: DesktopGroup(
-        'Desktop Action Create'
+        'Desktop Action Create',
+        comments: ['']
       ),
       exec: SpecificationString('fooview --create-new'),
       name: SpecificationLocaleString('Create a new Foo!'),
@@ -72,13 +80,90 @@ final manualDefinitionExample = DesktopContents(
   trailingComments: <String>[]
 );
 
-/*
+
 final firefoxDefinition = DesktopContents(
-  entry: entry,
-  actions: actions,
-  unrecognisedGroups: unrecognisedGroups,
-  trailingComments: trailingComments
-);*/
+  entry: DesktopEntry(
+    name: SpecificationLocaleString(
+      'Firefox Web Browser',
+      localisedValues: <String, SpecificationLocaleString>{
+        'ar': SpecificationLocaleString('متصفح الويب فَيَرفُكْس'),
+        'ca': SpecificationLocaleString('Navegador web Firefox'),
+        'zh_TW': SpecificationLocaleString('Firefox 網路瀏覽器')
+      }
+    ),
+    comment: SpecificationLocaleString(
+      'Browse the World Wide Web',
+      localisedValues: <String, SpecificationLocaleString>{
+        'ar': SpecificationLocaleString('تصفح الشبكة العنكبوتية العالمية'),
+        'ca': SpecificationLocaleString('Navegueu per la web'),
+        'zh_TW': SpecificationLocaleString('瀏覽網際網路')
+      }
+    ),
+    genericName: SpecificationLocaleString(
+      'Web Browser',
+      localisedValues: <String, SpecificationLocaleString>{
+      'ar': SpecificationLocaleString('متصفح ويب'),
+      'ca': SpecificationLocaleString('Navegador web'),
+      'zh_TW': SpecificationLocaleString('網路瀏覽器')
+      }
+    ),
+    keywords: LocalisableSpecificationTypeList(
+      'Internet;WWW;Browser;Web;Explorer'
+          .split(';')
+          .map((e) => SpecificationLocaleString(e))
+          .toList(growable: false),
+      localisedValues: <String, List<SpecificationLocaleString>>{
+        'ar': 'انترنت;إنترنت;متصفح;ويب;وب'
+          .split(';')
+          .map((e) => SpecificationLocaleString(e))
+          .toList(growable: false),
+        'ca': 'Internet;WWW;Navegador;Web;Explorador;Explorer'
+          .split(';')
+          .map((e) => SpecificationLocaleString(e))
+          .toList(growable: false),
+        'zh_TW': 'Internet;WWW;Browser;Web;Explorer;網際網路;網路;瀏覽器;上網;網頁;火狐'
+          .split(';')
+          .map((e) => SpecificationLocaleString((e)))
+          .toList(growable: false)
+      }
+    ),
+    exec: SpecificationString('firefox %u'),
+    terminal: SpecificationBoolean(false),
+    unrecognisedEntries: <UnrecognisedEntry>[
+      UnrecognisedEntry(key: 'MultipleArgs', values: ['false'])
+    ],
+    type: SpecificationString('Application'),
+    icon: SpecificationIconString('/default256.png'),
+    categories: SpecificationTypeList<SpecificationString>(
+      'GNOME;GTK;Network;WebBrowser'
+        .split(';')
+        .map((e) => SpecificationString(e))
+        .toList(growable: false)
+    ),
+    mimeType: SpecificationTypeList(
+      'text/html;text/xml;application/xhtml+xml;application/xml;application/rss+xml;application/rdf+xml;image/gif;image/jpeg;image/png;x-scheme-handler/http;x-scheme-handler/https;x-scheme-handler/ftp;x-scheme-handler/chrome;video/webm;application/x-xpinstall'
+      .split(';')
+      .map((e) => SpecificationString(e))
+      .toList(growable: false)
+    ),
+    startupNotify: SpecificationBoolean(true),
+    actions: SpecificationTypeList<SpecificationString>(
+      'NewWindow;NewPrivateWindow'
+      .split(';')
+      .map((e) => SpecificationString(e))
+      .toList(growable: false)
+    )
+  ),
+  actions: <DesktopAction>[
+
+  ],
+  unrecognisedGroups: <UnrecognisedGroup>[
+
+  ],
+  trailingComments: <String>[
+
+  ]
+);
 
 void main() async {
   test('Check XDG Directory Exists', () async {
@@ -156,14 +241,53 @@ void main() async {
     expect(file.existsSync(), false);
   });
 
-  test('Parse Desktop File Correctly', () async {
+  test('Compare Desktop Groups', () {
+    expect(DesktopGroup('') == DesktopGroup(''), true);
+    final aGroup = DesktopGroup('');
+    final bGroup = aGroup.copyWith();
+    expect(aGroup == bGroup, true);
+  });
+
+  test('Parse Simple Desktop File Correctly', () async {
     const filename = 'example-success.desktop';
     const existingPath = 'test/$filename';
     final existingFile = File(existingPath);
 
     final DesktopContents contents = DesktopContents.fromFile(existingFile);
-    print(compareMaps(DesktopContents.toData(contents), DesktopContents.toData(manualDefinitionExample)));
     expect(contents == manualDefinitionExample, true);
+  });
+
+  test('Write To File Correctly', () async {
+    const filename = 'desktopContentsToFile.desktop';
+    const filename2 = 'desktopContentsToFile2.desktop';
+
+
+    final file = await DesktopContents.toFile(
+      filename,
+      manualDefinitionExample
+    );
+    final contentsFromFile = DesktopContents.fromFile(file);
+
+    final file2 = await DesktopContents.toFile(
+        filename2,
+        contentsFromFile
+    );
+    // compareMaps(DesktopContents.toData(contentsFromFile), DesktopContents.toData(manualDefinitionExample));
+    expect(contentsFromFile == manualDefinitionExample, true);
+  });
+
+  test('Parse `subset-firefox.desktop` Correctly', () async {
+    const filename = 'subset-firefox.desktop';
+    const existingPath = 'test/$filename';
+    final existingFile = File(existingPath);
+
+    final DesktopContents contents = DesktopContents.fromFile(existingFile);
+    compareMaps(DesktopContents.toData(contents), DesktopContents.toData(firefoxDefinition));
+    expect(contents == firefoxDefinition, true);
+  });
+
+  test('Write `subset-firefox.desktop` to File Correctly', () async {
+
   });
 }
 

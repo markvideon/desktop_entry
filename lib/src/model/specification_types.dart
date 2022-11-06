@@ -3,7 +3,6 @@ import 'dart:io' if (dart.library.html) 'dart:html' show File, FileMode;
 
 import 'package:collection/collection.dart';
 import 'package:desktop_entry/desktop_entry.dart';
-
 import '../util/build_line.dart';
 import 'desktop_entry.dart';
 import 'interface/write_to_file.dart';
@@ -95,7 +94,7 @@ class SpecificationLocaleString extends DesktopEntryType<String>
     return other is SpecificationLocaleString &&
       value == other.value &&
       const ListEquality().equals(comments, other.comments) &&
-      const MapEquality().equals(modifiers, other.modifiers);
+      mapEquals(modifiers, other.modifiers);
   }
 
   @override
@@ -108,7 +107,7 @@ class SpecificationLocaleString extends DesktopEntryType<String>
     }
     file.writeAsStringSync(buildLine(key!, value.toString()), mode: FileMode.writeOnlyAppend);
     modifiers.forEach((localisedKey, localisedValue) {
-      file.writeAsStringSync(buildLine('$key[$localisedKey]', value.toString()), mode: FileMode.writeOnlyAppend);
+      file.writeAsStringSync(buildLine('$key[$localisedKey]', localisedValue.value), mode: FileMode.writeOnlyAppend);
     });
   }
 
@@ -116,8 +115,8 @@ class SpecificationLocaleString extends DesktopEntryType<String>
   toString() {
     return 'SpecificationLocaleString{ '
       'value: $value, '
-      'comments: $comments, '
-      'localisedValues: $modifiers '
+      'comments: $comments (${comments.length}: ${comments.map((e) => e)}), '
+      'localisedValues: $modifiers (${modifiers.length}: ${modifiers.values.map((e) => e.value)}) '
     '}';
   }
 }
@@ -149,7 +148,7 @@ class SpecificationIconString extends DesktopEntryType<String>
   bool operator ==(Object other) {
     return other is SpecificationIconString &&
         value == other.value &&
-        const MapEquality().equals(modifiers, other.modifiers) &&
+        mapEquals(modifiers, other.modifiers) &&
         const ListEquality().equals(comments, other.comments);
   }
 
@@ -422,7 +421,7 @@ class LocalisableSpecificationTypeList<T extends DesktopEntryType>
       other is LocalisableSpecificationTypeList<T> &&
       const ListEquality().equals(_internalList, other._internalList) &&
       const ListEquality().equals(comments, other.comments) &&
-      const MapEquality().equals(modifiers, other.modifiers);
+      mapEquals(modifiers, other.modifiers);
 
   @override
   int get hashCode => _internalList.hashCode ^

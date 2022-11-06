@@ -1,6 +1,6 @@
 import 'dart:developer';
 import 'dart:io' if (dart.library.html) 'dart:html' show Directory, File, Platform;
-
+import 'package:collection/collection.dart';
 import 'package:desktop_entry/desktop_entry.dart';
 import 'package:test/test.dart';
 import 'package:path/path.dart';
@@ -13,7 +13,8 @@ final manualDefinitionExample = DesktopContents(
     group: DesktopGroup('Desktop Entry'),
     version: SpecificationString('1.0'),
     unrecognisedEntries: <UnrecognisedEntry>[
-      UnrecognisedEntry(key: 'UnknownKey', values: ['UnknownValue'], comments: <String>[])
+      UnrecognisedEntry(key: 'X-UnknownKey', values: ['UnknownValue'], comments: <String>[]),
+      UnrecognisedEntry(key: 'X-Desktop-File-Install-Version', values: ['0.26'], comments: [''])
     ],
     type: SpecificationString('Application'),
     name: SpecificationLocaleString('Foo Viewer'),
@@ -83,6 +84,7 @@ final manualDefinitionExample = DesktopContents(
 
 final firefoxDefinition = DesktopContents(
   entry: DesktopEntry(
+    version: SpecificationString('1.0'),
     name: SpecificationLocaleString(
       'Firefox Web Browser',
       localisedValues: <String, SpecificationLocaleString>{
@@ -155,7 +157,30 @@ final firefoxDefinition = DesktopContents(
     )
   ),
   actions: <DesktopAction>[
-
+    DesktopAction(
+      group: DesktopGroup('Desktop Action NewWindow', comments: ['']),
+      name: SpecificationLocaleString(
+        'Open a New Window',
+        localisedValues: {
+          'ar' : SpecificationLocaleString('افتح نافذة جديدة'),
+          'ca' : SpecificationLocaleString('Obre una finestra nova'),
+          'zh_TW': SpecificationLocaleString('開啟新視窗')
+        }
+      ),
+      exec: SpecificationString('firefox -new-window')
+    ),
+    DesktopAction(
+      group: DesktopGroup('Desktop Action NewPrivateWindow', comments: ['']),
+      name: SpecificationLocaleString(
+        'Open a New Private Window',
+        localisedValues: {
+          'ar' : SpecificationLocaleString('افتح نافذة جديدة للتصفح الخاص'),
+          'ca' : SpecificationLocaleString('Obre una finestra nova en mode d\'incògnit'),
+          'zh_TW': SpecificationLocaleString('開啟新隱私瀏覽視窗')
+        }
+      ),
+      exec: SpecificationString('firefox -private-window')
+    )
   ],
   unrecognisedGroups: <UnrecognisedGroup>[
 
@@ -252,15 +277,13 @@ void main() async {
     const filename = 'example-success.desktop';
     const existingPath = 'test/$filename';
     final existingFile = File(existingPath);
-
     final DesktopContents contents = DesktopContents.fromFile(existingFile);
+
     expect(contents == manualDefinitionExample, true);
   });
 
   test('Write To File Correctly', () async {
     const filename = 'desktopContentsToFile.desktop';
-    const filename2 = 'desktopContentsToFile2.desktop';
-
 
     final file = await DesktopContents.toFile(
       filename,
@@ -268,11 +291,6 @@ void main() async {
     );
     final contentsFromFile = DesktopContents.fromFile(file);
 
-    final file2 = await DesktopContents.toFile(
-        filename2,
-        contentsFromFile
-    );
-    // compareMaps(DesktopContents.toData(contentsFromFile), DesktopContents.toData(manualDefinitionExample));
     expect(contentsFromFile == manualDefinitionExample, true);
   });
 
@@ -282,12 +300,26 @@ void main() async {
     final existingFile = File(existingPath);
 
     final DesktopContents contents = DesktopContents.fromFile(existingFile);
-    compareMaps(DesktopContents.toData(contents), DesktopContents.toData(firefoxDefinition));
+
+    // expect(contents.entry.name == firefoxDefinition.entry.name, true);
+
+
+    // expect(const ListEquality().equals(contents.unrecognisedGroups, firefoxDefinition.unrecognisedGroups), true);
+    // expect(const ListEquality().equals(contents.actions, firefoxDefinition.actions), true);
+    // compareMaps(DesktopContents.toData(contents), DesktopContents.toData(firefoxDefinition));
     expect(contents == firefoxDefinition, true);
   });
 
   test('Write `subset-firefox.desktop` to File Correctly', () async {
+    const filename = 'subsetFirefoxToFile.desktop';
 
+    final file = await DesktopContents.toFile(
+        filename,
+        firefoxDefinition
+    );
+    final contentsFromFile = DesktopContents.fromFile(file);
+
+    expect(contentsFromFile == firefoxDefinition, true);
   });
 }
 

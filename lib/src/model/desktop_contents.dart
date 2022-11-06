@@ -18,6 +18,7 @@ import 'package:path_provider/path_provider.dart';
 import 'desktop_action.dart';
 import 'desktop_entry.dart';
 import 'parse_mode.dart';
+import 'variant_map_entry.dart';
 
 // There could be unsupported groups.
 // There could be unsupported keys within supported groups.
@@ -37,7 +38,6 @@ class DesktopContents {
   final List<DesktopAction> actions;
   final List<UnrecognisedGroup> unrecognisedGroups;
   final List<String> trailingComments;
-
 
   static const fieldEntry = 'entry';
   static const fieldActions = 'actions';
@@ -104,7 +104,6 @@ class DesktopContents {
     for (var line in lines) {
       i++;
       final effectiveLine = line.trim();
-      // print(effectiveLine);
       final isCommentLine = effectiveLine.startsWith('#') || effectiveLine.isEmpty;
       final isGroupLine = (effectiveLine.startsWith('[') && effectiveLine.endsWith(']'));
 
@@ -179,33 +178,18 @@ class DesktopContents {
                   map[fieldEntry][DesktopEntry.fieldVersion] = SpecificationString(possibleMapEntry.value, comments: relevantComments);
                   relevantComments = <String>[];
                   continue;
-                // todo: Support locale
                 case DesktopSpecificationSharedMixin.fieldName:
-                  bool mapExists = map[fieldEntry] is Map;
-                  
-                  // Check if the map key exists
-                  if (possibleMapEntry.modifier is String) {
-                    // if the map entry exists, copy the value currently at the key, adding the new localised value
-                    // otherwise create a SpecificationLocaleString with an empty value?
-                  } else {
-                    // As before
-                  }
-                  map[fieldEntry][DesktopSpecificationSharedMixin.fieldName] = SpecificationLocaleString(possibleMapEntry.value, comments: relevantComments);
-                  relevantComments = <String>[];
+                  handleLocalisableString(map[fieldEntry], DesktopSpecificationSharedMixin.fieldName, possibleMapEntry, relevantComments);
                   continue;
-                // todo: Support locale
                 case DesktopEntry.fieldGenericName:
-                  map[fieldEntry][DesktopEntry.fieldGenericName] = SpecificationLocaleString(possibleMapEntry.value, comments: relevantComments);
-                  relevantComments = <String>[];
+                  handleLocalisableString(map[fieldEntry], DesktopEntry.fieldGenericName, possibleMapEntry, relevantComments);
                   continue;
                 case DesktopEntry.fieldNoDisplay:
                   map[fieldEntry][DesktopEntry.fieldNoDisplay] = SpecificationBoolean(stringToBool(possibleMapEntry.value), comments: relevantComments);
                   relevantComments = <String>[];
                   continue;
-                // todo: Support locale
                 case DesktopEntry.fieldComment:
-                  map[fieldEntry][DesktopEntry.fieldComment] = SpecificationLocaleString(possibleMapEntry.value, comments: relevantComments);
-                  relevantComments = <String>[];
+                  handleLocalisableString(map[fieldEntry], DesktopEntry.fieldComment, possibleMapEntry, relevantComments);
                   continue;
                 case DesktopSpecificationSharedMixin.fieldIcon:
                   map[fieldEntry][DesktopSpecificationSharedMixin.fieldIcon] = SpecificationIconString(possibleMapEntry.value, comments: relevantComments);
@@ -277,13 +261,8 @@ class DesktopContents {
                   );
                   relevantComments = <String>[];
                   continue;
-                // todo: Support locales
                 case DesktopEntry.fieldKeywords:
-                  map[fieldEntry][DesktopEntry.fieldKeywords] = LocalisableSpecificationTypeList<SpecificationLocaleString>(
-                    (possibleMapEntry.value as Iterable).map((e) => SpecificationLocaleString(e)).toList(growable: false),
-                    comments: relevantComments
-                  );
-                  relevantComments = <String>[];
+                  handleLocalisableList<SpecificationLocaleString>(map[fieldEntry], DesktopEntry.fieldKeywords, possibleMapEntry, relevantComments, (value) => SpecificationLocaleString(value));
                   continue;
                 case DesktopEntry.fieldStartupNotify:
                   map[fieldEntry][DesktopEntry.fieldStartupNotify] = SpecificationBoolean(stringToBool(possibleMapEntry.value), comments: relevantComments);
@@ -316,7 +295,6 @@ class DesktopContents {
                   continue;
               }
               continue;
-            // todo:
             case DesktopSpecificationParseMode.desktopAction:
               switch (possibleMapEntry.key) {
                 case DesktopSpecificationSharedMixin.fieldExec:
@@ -327,10 +305,8 @@ class DesktopContents {
                   (map[fieldActions] as List)[activeActionIdx][DesktopSpecificationSharedMixin.fieldIcon] = SpecificationIconString(possibleMapEntry.value, comments: relevantComments);
                   relevantComments = <String>[];
                   continue;
-                // todo: Support locales
                 case DesktopSpecificationSharedMixin.fieldName:
-                  (map[fieldActions] as List)[activeActionIdx][DesktopSpecificationSharedMixin.fieldName] = SpecificationLocaleString(possibleMapEntry.value, comments: relevantComments);
-                  relevantComments = <String>[];
+                  handleLocalisableString(map[fieldActions][activeActionIdx], DesktopSpecificationSharedMixin.fieldName, possibleMapEntry, relevantComments);
                   continue;
                 default:
                   final unrecognisedEntry = UnrecognisedEntry(
@@ -348,7 +324,6 @@ class DesktopContents {
                   values: possibleMapEntry.value is List<String> ? possibleMapEntry.value : <String>[possibleMapEntry.value],
                   comments: relevantComments
               );
-              print('Unrecognised groups lookup: ${map[fieldUnrecognisedGroups]}');
               ((map[fieldUnrecognisedGroups] as List).elementAt(activeUnrecognisedGroupIdx)[UnrecognisedEntriesMixin.fieldEntries] as List<UnrecognisedEntry>).add(unrecognisedEntry);
               relevantComments = <String>[];
               continue;

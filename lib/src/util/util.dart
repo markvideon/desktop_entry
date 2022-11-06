@@ -1,6 +1,29 @@
 import 'dart:developer';
 import 'dart:io' show Process, ProcessResult;
 import 'package:collection/collection.dart';
+import 'package:desktop_entry/src/model/variant_map_entry.dart';
+
+import '../model/specification_types.dart';
+
+// Lifted from 'package:flutter/foundation.dart' - Pinched to avoid depending
+// on Flutter.
+bool mapEquals<T, U>(Map<T, U>? a, Map<T, U>? b) {
+  if (a == null) {
+    return b == null;
+  }
+  if (b == null || a.length != b.length) {
+    return false;
+  }
+  if (identical(a, b)) {
+    return true;
+  }
+  for (final T key in a.keys) {
+    if (!b.containsKey(key) || b[key] != a[key]) {
+      return false;
+    }
+  }
+  return true;
+}
 
 Future<Process> adminProcess(String processName, List<String> processArguments) async {
   return Process.start(
@@ -72,6 +95,75 @@ List<String> extractContents(String input, String startChar, String endChar) {
   return matches;
 }
 
+handleLocalisableList<T extends DesktopEntryType>(
+    Map map, String relevantKey, VariantMapEntry entry, List<String> relevantComments, T Function(dynamic) processValues) {
+  bool objectExists = map[relevantKey] != null;
+
+  if (!objectExists) {
+    map[relevantKey] = LocalisableSpecificationTypeList<T>(<T>[]);
+  }
+
+  final existingName = map[relevantKey] as LocalisableSpecificationTypeList<T>;
+  // Check if the map key exists
+  if (entry.modifier is String) {
+    // if the map entry exists, copy the value currently at the key, adding the new localised value
+    // otherwise create a SpecificationLocaleString with an empty value?
+    final updatedLocalisation = Map.of(existingName.modifiers)..addEntries([
+      MapEntry(entry.modifier!,
+          LocalisableSpecificationTypeList<T>(
+            (entry.value as Iterable).map((e) => processValues(e)).toList(growable: false)
+          )
+      )
+    ]);
+
+    map[relevantKey] = existingName.copyWith(
+        localisedValues: updatedLocalisation,
+        comments: relevantComments
+    );
+  } else {
+    // As before
+    map[relevantKey] = existingName.copyWith(
+        primitiveList: (entry.value as Iterable).map((e) => processValues(e)).toList(growable: false),
+        comments: relevantComments
+    );
+  }
+
+  relevantComments = <String>[];
+}
+
+handleLocalisableString(Map map, String relevantKey, VariantMapEntry entry, List<String> relevantComments) {
+  // Due to a bug, let's copy the list to be safe.
+  final applicableList = List.of(relevantComments);
+
+  bool objectExists = map[relevantKey] != null;
+
+  if (!objectExists) {
+    map[relevantKey] = SpecificationLocaleString('');
+  }
+
+  final existingName = map[relevantKey] as SpecificationLocaleString;
+  // Check if the map key exists
+  if (entry.modifier is String) {
+    // if the map entry exists, copy the value currently at the key, adding the new localised value
+    // otherwise create a SpecificationLocaleString with an empty value?
+    final updatedLocalisation = Map.of(existingName.modifiers)..addEntries([
+      MapEntry(entry.modifier!, SpecificationLocaleString(entry.value))
+    ]);
+
+    map[relevantKey] = existingName.copyWith(
+      localisedValues: updatedLocalisation,
+      comments: applicableList
+    );
+  } else {
+    // As before
+    map[relevantKey] = existingName.copyWith(
+      value: entry.value,
+      comments: applicableList
+    );
+  }
+  relevantComments = <String>[];
+}
+
 bool compareMaps(Map<String, dynamic> mapA, Map<String, dynamic> mapB) {
   List<String> keysExclusiveToA = mapA.keys.where((key) => !mapB.containsKey(key)).toList(growable: false);
   List<String> keysExclusiveToB = mapB.keys.where((key) => !mapA.containsKey(key)).toList(growable: false);
@@ -88,18 +180,17 @@ bool compareMaps(Map<String, dynamic> mapA, Map<String, dynamic> mapB) {
           final listBElement = mapBList.elementAt(idx);
 
           if (listAElement is Map) {
-            print('under map');
-            if (!const MapEquality().equals(listAElement, listBElement)) {
+            if (!mapEquals(listAElement, listBElement)) {
               listAElement.forEach((mapKey, listAValue) {
                 final listBValue = listBElement[mapKey];
                 if (listAValue is List && !const ListEquality().equals(listAValue, listBValue)) {
-                  // print('At $key $mapKey, $listAValue (hashCode: ${listAValue.hashCode}, runtimeType: ${listAValue.runtimeType}) != $listBValue (hashCode: ${listBValue.hashCode}, runtimeType: ${listBValue.runtimeType})');
+                  print('At $key $mapKey, $listAValue (hashCode: ${listAValue.hashCode}, runtimeType: ${listAValue.runtimeType}) != $listBValue (hashCode: ${listBValue.hashCode}, runtimeType: ${listBValue.runtimeType})');
                   listAValue.forEachIndexed((listIdx, listElement) {
                     if (listBValue.elementAt(listIdx) != listAValue.elementAt(listIdx)) {
                       print('List element unequal at $key $mapKey $listIdx, ${listAValue.elementAt(listIdx)} (hashCode: ${listAValue.elementAt(listIdx).hashCode}, runtimeType: ${listAValue.elementAt(listIdx).runtimeType}) != ${listBValue.elementAt(listIdx)} (hashCode: ${listBValue.elementAt(listIdx).hashCode}, runtimeType: ${listBValue.elementAt(listIdx).runtimeType})');
                     }
                   });
-                } else if (listAValue is Map && !const MapEquality().equals(listAValue, listBValue)) {
+                } else if (listAValue is Map && !mapEquals(listAValue, listBValue)) {
                   print('At $key $mapKey, $listAValue (hashCode: ${listAValue.hashCode}, runtimeType: ${listAValue.runtimeType}) != $listBValue (hashCode: ${listBValue.hashCode}, runtimeType: ${listBValue.runtimeType})');
                 } else {
                   if (listAValue != listBValue) {
@@ -107,12 +198,11 @@ bool compareMaps(Map<String, dynamic> mapA, Map<String, dynamic> mapB) {
                   }
                 }
               });
-              // print('$key $idx: $listAElement != $listBElement');
-              // print('${listAElement.toString().length} ... ${listBElement.toString().length}');
+              print('$key $idx: $listAElement != $listBElement');
+              print('${listAElement.toString().length} ... ${listBElement.toString().length}');
 
             }
           } else if (listAElement is List) {
-            print('under list');
             if (!const ListEquality().equals(listAElement, listBElement)) {
               print('$key $idx: $listAElement != $listBElement');
               print('${listAElement.toString().length} ... ${listBElement.toString().length}');
@@ -120,7 +210,6 @@ bool compareMaps(Map<String, dynamic> mapA, Map<String, dynamic> mapB) {
             }
           } else {
             if (listAElement!= listBElement) {
-              print('under else');
               print('$key $idx: $listAElement != $listBElement');
               print('${listAElement.toString().length} ... ${listBElement.toString().length}');
             }
@@ -137,7 +226,7 @@ bool compareMaps(Map<String, dynamic> mapA, Map<String, dynamic> mapB) {
             print('${mapX[key].toString().length} ... ${mapY[key].toString().length}');
           }
         });
-        equalityTestResult = const MapEquality().equals(value, mapB[key]);
+        equalityTestResult = mapEquals(value, mapB[key]);
       } else {
         print('value is not list or map for key $key');
         equalityTestResult = value == mapB[key];

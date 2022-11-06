@@ -496,7 +496,6 @@ class DesktopEntry with DesktopSpecificationSharedMixin, UnrecognisedEntriesMixi
     singleMainWindow?.writeToFile(file, fieldSingleMainWindow);
 
     for (var element in unrecognisedEntries) {
-      print('writing unrecognised entry to ifle');
       element.writeToFile(file, _);
     }
   }

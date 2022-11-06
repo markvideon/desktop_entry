@@ -4,6 +4,7 @@ import 'package:collection/collection.dart';
 import 'package:desktop_entry/src/model/mixin/supports_modifiers_mixin.dart';
 
 import '../../util/build_line.dart';
+import '../../util/util.dart';
 import '../interface/write_to_file.dart';
 import '../mixin/comments_mixin.dart';
 
@@ -40,7 +41,6 @@ class UnrecognisedEntry with CommentsMixin, SupportsModifiersMixin<UnrecognisedE
 
   @override
   writeToFile(File file, _) {
-    print('Writing unrecognised entry: $key, $values');
     StringBuffer buffer = StringBuffer("");
 
     for (var comment in comments) {
@@ -91,7 +91,7 @@ class UnrecognisedEntry with CommentsMixin, SupportsModifiersMixin<UnrecognisedE
       key == other.key &&
       const ListEquality().equals(values, other.values) &&
       const ListEquality().equals(comments, other.comments) &&
-      const MapEquality().equals(modifiers, other.modifiers);
+      mapEquals(modifiers, other.modifiers);
   }
 
   @override

@@ -1,14 +1,15 @@
 import 'dart:developer';
 import 'dart:io' if (dart.library.html) 'dart:html' show Directory, File, Platform;
-import 'package:collection/collection.dart';
 import 'package:desktop_entry/desktop_entry.dart';
 import 'package:test/test.dart';
 import 'package:path/path.dart';
 import 'package:xdg_directories/xdg_directories.dart';
 
+import 'util.dart';
+
 final pathContext = Context(style: Style.posix);
 
-final manualDefinitionExample = DesktopContents(
+final manualDefinitionExample = DesktopFileContents(
   entry: DesktopEntry(
     group: DesktopGroup('Desktop Entry'),
     version: SpecificationString('1.0'),
@@ -81,8 +82,7 @@ final manualDefinitionExample = DesktopContents(
   trailingComments: <String>[]
 );
 
-
-final firefoxDefinition = DesktopContents(
+final firefoxDefinition = DesktopFileContents(
   entry: DesktopEntry(
     version: SpecificationString('1.0'),
     name: SpecificationLocaleString(
@@ -225,7 +225,7 @@ void main() async {
   });
 
   test('Install Desktop Entry - Existing', () async {
-    const filename = 'example-success.desktop';
+    const filename = 'example-fooview.desktop';
     const existingPath = 'test/$filename';
     final existingFile = File(existingPath);
 
@@ -239,7 +239,7 @@ void main() async {
         Platform.environment['HOME']!,
         localUserDesktopEntryInstallationDirectoryPath);
 
-    await installFromFile(
+    await installDesktopFileFromFile(
         existingFile,
         installationDirectoryPath: destinationFolderPath);
 
@@ -250,7 +250,7 @@ void main() async {
   });
 
   test('Uninstall Desktop Entry - Existing', () async {
-    const filename = 'example-success.desktop';
+    const filename = 'example-fooview.desktop';
 
     final pathContext = Context(style: Style.posix);
     final sourceFilePath = pathContext.join(
@@ -261,7 +261,7 @@ void main() async {
 
     expect(file.existsSync(), true);
 
-    await _uninstall(filename);
+    await uninstallDesktopFile(file);
 
     expect(file.existsSync(), false);
   });
@@ -274,10 +274,10 @@ void main() async {
   });
 
   test('Parse Simple Desktop File Correctly', () async {
-    const filename = 'example-success.desktop';
+    const filename = 'example-fooview.desktop';
     const existingPath = 'test/$filename';
     final existingFile = File(existingPath);
-    final DesktopContents contents = DesktopContents.fromFile(existingFile);
+    final DesktopFileContents contents = DesktopFileContents.fromFile(existingFile);
 
     expect(contents == manualDefinitionExample, true);
   });
@@ -285,85 +285,34 @@ void main() async {
   test('Write To File Correctly', () async {
     const filename = 'desktopContentsToFile.desktop';
 
-    final file = await DesktopContents.toFile(
+    final file = await DesktopFileContents.toFile(
       filename,
       manualDefinitionExample
     );
-    final contentsFromFile = DesktopContents.fromFile(file);
+    final contentsFromFile = DesktopFileContents.fromFile(file);
 
     expect(contentsFromFile == manualDefinitionExample, true);
   });
 
-  test('Parse `subset-firefox.desktop` Correctly', () async {
-    const filename = 'subset-firefox.desktop';
+  test('Parse `example-firefox.desktop` Correctly', () async {
+    const filename = 'example-firefox.desktop';
     const existingPath = 'test/$filename';
     final existingFile = File(existingPath);
 
-    final DesktopContents contents = DesktopContents.fromFile(existingFile);
+    final DesktopFileContents contents = DesktopFileContents.fromFile(existingFile);
 
-    // expect(contents.entry.name == firefoxDefinition.entry.name, true);
-
-
-    // expect(const ListEquality().equals(contents.unrecognisedGroups, firefoxDefinition.unrecognisedGroups), true);
-    // expect(const ListEquality().equals(contents.actions, firefoxDefinition.actions), true);
-    // compareMaps(DesktopContents.toData(contents), DesktopContents.toData(firefoxDefinition));
     expect(contents == firefoxDefinition, true);
   });
 
-  test('Write `subset-firefox.desktop` to File Correctly', () async {
+  test('Write `example-firefox.desktop` to File Correctly', () async {
     const filename = 'subsetFirefoxToFile.desktop';
 
-    final file = await DesktopContents.toFile(
+    final file = await DesktopFileContents.toFile(
         filename,
         firefoxDefinition
     );
-    final contentsFromFile = DesktopContents.fromFile(file);
+    final contentsFromFile = DesktopFileContents.fromFile(file);
 
     expect(contentsFromFile == firefoxDefinition, true);
   });
-}
-
-/*
-  Test Util functions
-*/
-/// Install the Desktop file at [projectRoot]/test/[filename]
-install(String filename, {File? file}) async {
-  final existingPath = 'test/$filename';
-  final existingFile = file ?? File(existingPath);
-
-  final pathContext = Context(style: Style.posix);
-  final destinationFilePath = pathContext.join(Platform.environment['HOME']!, localUserDesktopEntryInstallationDirectoryPath, filename);
-
-  await installFromFile(existingFile, installationDirectoryPath: destinationFilePath);
-}
-
-/// Install the Desktop file at [projectRoot]/test/[filename]
-/// if it does not already exist.
-/// Uninstall the file.
-_uninstall(String filename) async {
-  final pathContext = Context(style: Style.posix);
-  final installedPath = pathContext.join(
-      Platform.environment['HOME']!,
-      localUserDesktopEntryInstallationDirectoryPath,
-      filename);
-  final file = File(installedPath);
-  log('About to uninstall file at ${file.path}');
-  await uninstall(file);
-  expect(file.existsSync(), false);
-}
-
-Future<void> createDirectoryIfDne(String path) async {
-  final directory = Directory(path);
-
-  if (!directory.existsSync()) {
-    await Directory(path).create(recursive: true);
-  }
-}
-
-Future<void> deleteExistingDirectory(String path) async {
-  final directory = Directory(path);
-
-  if (directory.existsSync()) {
-    await Directory(path).delete(recursive: true);
-  }
 }

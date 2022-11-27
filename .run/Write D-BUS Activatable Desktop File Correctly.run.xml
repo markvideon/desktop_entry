@@ -1,0 +1,9 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="Write D-BUS Service to File Correctly" type="FlutterTestConfigType" factoryName="Flutter Test" folderName="DBus">
+    <option name="testName" value="Write D-BUS Service to File Correctly" />
+    <option name="testFile" value="$PROJECT_DIR$/test/dbus_service_test.dart" />
+    <option name="useRegexp" value="false" />
+    <option name="additionalArgs" value="" />
+    <method v="2" />
+  </configuration>
+</component>

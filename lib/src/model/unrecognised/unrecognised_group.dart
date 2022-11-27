@@ -3,11 +3,10 @@ import 'dart:io' if (dart.library.html) 'dart:html' show File;
 import 'package:collection/collection.dart';
 import 'package:desktop_entry/desktop_entry.dart';
 
+import '../group_name.dart';
 import '../interface/write_to_file.dart';
 import '../mixin/group_mixin.dart';
 import '../mixin/unrecognised_entries_mixin.dart';
-
-import '../group_name.dart';
 import 'unrecognised_entry.dart';
 
 class UnrecognisedGroup with GroupMixin, UnrecognisedEntriesMixin implements FileWritable {

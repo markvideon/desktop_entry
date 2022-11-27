@@ -4,7 +4,7 @@
 import 'package:dbus/dbus.dart';
 
 class DevMarkvideonDesktopEntryExampleObject extends DBusObject {
-  Function? callback;
+  Function(Map<String, dynamic> data)? callback;
 
   /// Creates a new object to expose on [path].
   DevMarkvideonDesktopEntryExampleObject({this.callback,
@@ -13,19 +13,19 @@ class DevMarkvideonDesktopEntryExampleObject extends DBusObject {
 
   /// Implementation of org.freedesktop.Application.Activate()
   Future<DBusMethodResponse> doActivate(Map<String, DBusValue> platform_data) async {
-    print('doActivate');
-    return DBusMethodErrorResponse.failed('org.freedesktop.Application.Activate() not implemented');
+    callback?.call(platform_data);
+    return DBusMethodSuccessResponse();
   }
 
   /// Implementation of org.freedesktop.Application.Open()
   Future<DBusMethodResponse> doOpen(List<String> uris, Map<String, DBusValue> platform_data) async {
-    print('doOpen');
+    callback?.call(platform_data);
     return DBusMethodErrorResponse.failed('org.freedesktop.Application.Open() not implemented');
   }
 
   /// Implementation of org.freedesktop.Application.ActivateAction()
   Future<DBusMethodResponse> doActivateAction(String action_name, List<DBusValue> parameter, Map<String, DBusValue> platform_data) async {
-    print('doActivateAction');
+    callback?.call(platform_data);
     return DBusMethodErrorResponse.failed('org.freedesktop.Application.ActivateAction() not implemented');
   }
 

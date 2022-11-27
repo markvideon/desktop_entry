@@ -1,24 +1,24 @@
 import 'dart:io';
 
 import 'package:collection/collection.dart';
-
-import 'mixin/shared_mixin.dart';
-import 'unrecognised/unrecognised_entry.dart';
-import '../util/parse_line.dart';
-
-import 'group_name.dart';
-import 'mixin/group_mixin.dart';
-import 'mixin/unrecognised_entries_mixin.dart';
-import 'specification_types.dart';
-import 'unrecognised/unrecognised_group.dart';
-import '../util/util.dart';
+import 'package:desktop_entry/src/model/mixin/comments_mixin.dart';
+import 'package:desktop_entry/src/util/build_line.dart';
 import 'package:path/path.dart' show Context, Style;
 import 'package:path_provider/path_provider.dart';
 
+import '../../util/parse_line.dart';
+import '../../util/util.dart';
+import '../group_name.dart';
+import '../mixin/group_mixin.dart';
+import '../mixin/shared_mixin.dart';
+import '../mixin/unrecognised_entries_mixin.dart';
+import '../mixin/unsupported_groups_mixin.dart';
+import '../parse_mode.dart';
+import '../specification_types.dart';
+import '../unrecognised/unrecognised_entry.dart';
+import '../unrecognised/unrecognised_group.dart';
 import 'desktop_action.dart';
 import 'desktop_entry.dart';
-import 'parse_mode.dart';
-import 'variant_map_entry.dart';
 
 // There could be unsupported groups.
 // There could be unsupported keys within supported groups.
@@ -26,31 +26,37 @@ import 'variant_map_entry.dart';
   // - If a (trimmed) line starts with a comment character, treat the line as a comment.
   // Collect comments on a per-FIELD basis. E.g. map[GROUP][FIELD] = [...listOfComments];
 
-class DesktopContents {
-  DesktopContents({
+class DesktopFileContents with TrailingCommentsMixin, UnrecognisedGroupsMixin {
+  DesktopFileContents({
     required this.entry,
     required this.actions,
-    required this.unrecognisedGroups,
-    required this.trailingComments
-  });
+    required List<UnrecognisedGroup> unrecognisedGroups,
+    List<String>? trailingComments
+  }) {
+    if (trailingComments is List<String>) {
+      this.trailingComments = trailingComments;
+    }
+
+    this.unrecognisedGroups = unrecognisedGroups;
+  }
 
   final DesktopEntry entry;
   final List<DesktopAction> actions;
-  final List<UnrecognisedGroup> unrecognisedGroups;
-  final List<String> trailingComments;
 
   static const fieldEntry = 'entry';
   static const fieldActions = 'actions';
-  static const fieldUnrecognisedGroups = 'unrecognisedGroups';
-  static const fieldTrailingComments = 'trailingComments';
 
   // To
-  static Future<File> toFile(String name, DesktopContents contents) async {
+  static Future<File> toFile(String name, DesktopFileContents contents) async {
     // Create file
     final tempDir = await getTemporaryDirectory();
     final pathContext = Context(style: Style.posix);
-    final absPath = pathContext.join(tempDir.path, '$name');
+    final absPath = pathContext.join(tempDir.path, '$name.desktop');
     final file = File(absPath);
+
+    if (!file.existsSync()) {
+      file.createSync(recursive: true);
+    }
 
     // Clear the file
     file.writeAsStringSync('');
@@ -64,29 +70,33 @@ class DesktopContents {
       group.writeToFile(file, null);
     }
 
+    for (var element in contents.trailingComments) {
+      file.writeAsStringSync(buildComment(element), mode: FileMode.writeOnlyAppend);
+    }
+
     return file;
   }
 
-  static Map<String, dynamic> toData(DesktopContents contents) {
+  static Map<String, dynamic> toData(DesktopFileContents contents) {
     return <String, dynamic> {
       fieldEntry: DesktopEntry.toData(contents.entry),
       fieldActions: contents.actions.map((e) => DesktopAction.toData(e)).toList(growable: false),
-      fieldUnrecognisedGroups: contents.unrecognisedGroups.map((e) => UnrecognisedGroup.toData(e)).toList(growable: false),
-      fieldTrailingComments: List.of(contents.trailingComments)
+      UnrecognisedGroupsMixin.fieldUnrecognisedGroups: contents.unrecognisedGroups.map((e) => UnrecognisedGroup.toData(e)).toList(growable: false),
+      TrailingCommentsMixin.fieldTrailingComments: List.of(contents.trailingComments)
     };
   }
 
   // From
-  factory DesktopContents.fromMap(Map<String, dynamic> map) {
-    return DesktopContents(
+  factory DesktopFileContents.fromMap(Map<String, dynamic> map) {
+    return DesktopFileContents(
       entry: DesktopEntry.fromMap(map[fieldEntry]),
       actions: (map[fieldActions] as Iterable<Map<String, dynamic>>).map((e) => DesktopAction.fromMap(e)).toList(growable: false),
-      unrecognisedGroups: (map[fieldUnrecognisedGroups] as Iterable<Map<String, dynamic>>).map((e) => UnrecognisedGroup.fromMap(e)).toList(growable: false),
-      trailingComments: map[fieldTrailingComments] != null ? List.of(map[fieldTrailingComments]) : <String>[]
+      unrecognisedGroups: (map[UnrecognisedGroupsMixin.fieldUnrecognisedGroups] as Iterable<Map<String, dynamic>>).map((e) => UnrecognisedGroup.fromMap(e)).toList(growable: false),
+      trailingComments: map[TrailingCommentsMixin.fieldTrailingComments] != null ? List.of(map[TrailingCommentsMixin.fieldTrailingComments]) : <String>[]
     );
   }
 
-  factory DesktopContents.fromLines(Iterable<String> lines) {
+  factory DesktopFileContents.fromLines(Iterable<String> lines) {
     if (lines.isEmpty) {
       throw Exception('File appears to be empty.');
     }
@@ -94,7 +104,7 @@ class DesktopContents {
     final map = <String, dynamic> {};
     map[fieldEntry] = <String, dynamic>{ UnrecognisedEntriesMixin.fieldEntries: <UnrecognisedEntry>[] };
     map[fieldActions] = <Map<String, dynamic>>[];
-    map[fieldUnrecognisedGroups] = <Map<String, dynamic>>[];
+    map[UnrecognisedGroupsMixin.fieldUnrecognisedGroups] = <Map<String, dynamic>>[];
     int activeActionIdx = -1;
     int activeUnrecognisedGroupIdx = -1;
 
@@ -125,7 +135,7 @@ class DesktopContents {
               UnrecognisedEntriesMixin.fieldEntries: <UnrecognisedEntry>[]
             };
 
-            map[DesktopContents.fieldEntry] = actionMap;
+            map[DesktopFileContents.fieldEntry] = actionMap;
           }
           // Desktop Action
           else if (extractedGroupName.first.startsWith('Desktop Action ')) {
@@ -152,7 +162,7 @@ class DesktopContents {
               GroupMixin.fieldGroup: unrecognisedGroupName,
               UnrecognisedEntriesMixin.fieldEntries: <UnrecognisedEntry>[]
             };
-            map[fieldUnrecognisedGroups] = <Map<String, dynamic>>[...map[fieldUnrecognisedGroups], unrecognisedGroupMap];
+            map[UnrecognisedGroupsMixin.fieldUnrecognisedGroups] = <Map<String, dynamic>>[...map[UnrecognisedGroupsMixin.fieldUnrecognisedGroups], unrecognisedGroupMap];
             activeUnrecognisedGroupIdx++;
           }
 
@@ -294,7 +304,6 @@ class DesktopContents {
                   relevantComments = <String>[];
                   continue;
               }
-              continue;
             case DesktopSpecificationParseMode.desktopAction:
               switch (possibleMapEntry.key) {
                 case DesktopSpecificationSharedMixin.fieldExec:
@@ -324,9 +333,12 @@ class DesktopContents {
                   values: possibleMapEntry.value is List<String> ? possibleMapEntry.value : <String>[possibleMapEntry.value],
                   comments: relevantComments
               );
-              ((map[fieldUnrecognisedGroups] as List).elementAt(activeUnrecognisedGroupIdx)[UnrecognisedEntriesMixin.fieldEntries] as List<UnrecognisedEntry>).add(unrecognisedEntry);
+              ((map[UnrecognisedGroupsMixin.fieldUnrecognisedGroups] as List).elementAt(activeUnrecognisedGroupIdx)[UnrecognisedEntriesMixin.fieldEntries] as List<UnrecognisedEntry>).add(unrecognisedEntry);
               relevantComments = <String>[];
               continue;
+            case DesktopSpecificationParseMode.dbusService:
+              // Do nothing.
+              break;
           }
           //relevantComments = <String>[];
         }
@@ -334,18 +346,18 @@ class DesktopContents {
     }
 
     // Any outstanding lines are appended to the end
-    map[fieldTrailingComments] = relevantComments;
-    return DesktopContents.fromMap(map);
+    map[TrailingCommentsMixin.fieldTrailingComments] = relevantComments;
+    return DesktopFileContents.fromMap(map);
   }
 
-  factory DesktopContents.fromFile(File file) {
+  factory DesktopFileContents.fromFile(File file) {
     final lines = file.readAsLinesSync();
-    return DesktopContents.fromLines(lines);
+    return DesktopFileContents.fromLines(lines);
   }
 
   @override
   bool operator ==(Object other) {
-    return other is DesktopContents &&
+    return other is DesktopFileContents &&
       const ListEquality().equals(actions, other.actions) &&
       const ListEquality().equals(unrecognisedGroups, other.unrecognisedGroups) &&
       const ListEquality().equals(trailingComments, other.trailingComments) &&

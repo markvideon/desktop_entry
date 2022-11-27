@@ -2,15 +2,15 @@
 import 'dart:io' if (dart.library.html) 'dart:html' show File, FileMode;
 
 import 'package:collection/collection.dart' show ListEquality;
-import 'mixin/unrecognised_entries_mixin.dart';
-import 'group_name.dart';
-import 'interface/write_to_file.dart';
 
-import '../util/build_line.dart';
-import 'mixin/group_mixin.dart';
-import 'mixin/shared_mixin.dart';
-import 'specification_types.dart';
-import 'unrecognised/unrecognised_entry.dart';
+import '../../util/build_line.dart';
+import '../group_name.dart';
+import '../interface/write_to_file.dart';
+import '../mixin/group_mixin.dart';
+import '../mixin/shared_mixin.dart';
+import '../mixin/unrecognised_entries_mixin.dart';
+import '../specification_types.dart';
+import '../unrecognised/unrecognised_entry.dart';
 
 class DesktopEntry with DesktopSpecificationSharedMixin, UnrecognisedEntriesMixin, GroupMixin implements FileWritable {
   DesktopEntry({

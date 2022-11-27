@@ -1,0 +1,8 @@
+# From `man dbus-daemon`:
+# $XDG_DATA_HOME/dbus-1/services, where XDG_DATA_HOME defaults to ~/.local/share
+# (see the XDG Base Directory Specification): this location is specified by the D-Bus
+# Specification, and is suitable for per-user, locally-installed software.
+
+[D-BUS Service]
+Name=dev.markvideon.DesktopEntryExample
+Exec=/home/mark/Documents/dartdesktopentry/example/build/linux/x64/debug/bundle/example

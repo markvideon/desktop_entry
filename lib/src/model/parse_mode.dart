@@ -1,5 +1,6 @@
 enum DesktopSpecificationParseMode {
   unrecognisedGroup,
   desktopEntry,
-  desktopAction
+  desktopAction,
+  dbusService
 }

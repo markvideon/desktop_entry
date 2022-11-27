@@ -1,5 +1,5 @@
 <component name="ProjectRunConfigurationManager">
-  <configuration default="false" name="Write `subset-firefox.desktop` to File Correctly" type="FlutterTestConfigType" factoryName="Flutter Test">
+  <configuration default="false" name="Write `subset-firefox.desktop` to File Correctly" type="FlutterTestConfigType" factoryName="Flutter Test" folderName="Desktop Entry">
     <option name="testName" value="Write `subset-firefox.desktop` to File Correctly" />
     <option name="testFile" value="$PROJECT_DIR$/test/desktop_entry_test.dart" />
     <option name="useRegexp" value="false" />

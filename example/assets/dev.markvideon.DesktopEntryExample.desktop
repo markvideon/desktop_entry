@@ -1,0 +1,7 @@
+[Desktop Entry]
+Type=Application
+Name=FlutterDesktopEntryExample
+DBusActivatable=true
+Exec=/home/mark/Documents/dartdesktopentry/example/build/linux/x64/debug/bundle/example %u
+MimeType=x-scheme-handler/markvideon;
+Implements=org.freedesktop.Application;

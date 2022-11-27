@@ -1,58 +1,49 @@
 import 'dart:async';
 import 'dart:developer';
-import 'dart:io' show File, FileSystemException, Platform, Process;
-import '../model/desktop_contents.dart';
+import 'dart:io' show Directory, File, FileSystemException, Platform, Process;
+
+import 'package:desktop_entry/src/model/dbus/dbus_contents.dart';
 import 'package:path/path.dart' show Context, Style;
+
+import '../model/desktop_entry/desktop_contents.dart';
 import '../util/util.dart';
 
-Future<String> installFromMemory({
-  required DesktopContents contents,
-  required String filename,
-  required String installationPath,
-  Future<String> Function()? getPassword
-}) async {
-  // Deliberate decision not to throw errors based on runtime platform at this time.
-  if (Platform.isLinux == false) {
-    return '';
-  }
+// https://nyirog.medium.com/register-dbus-service-f923dfca9f1
 
-  final file = await DesktopContents.toFile(filename, contents);
-  return installFromFile(
+/*
+  Desktop File
+*/
+Future<String> installDesktopFileFromMemory({
+  required DesktopFileContents contents,
+  required String filenameNoExtension,
+  required String installationPath,
+}) async {
+  final file = await DesktopFileContents.toFile(filenameNoExtension, contents);
+  return installDesktopFileFromFile(
     file,
     installationDirectoryPath: installationPath,
-    getPassword: getPassword
   );
 }
 
-// Locations: these correspond to the 'applications' folder of each of the
-// XDG_DATA_DIRS
-// /usr/share/ubuntu/applications,
-// /home/mark/.local/share/flatpak/exports/share/applications,
-// /var/lib/flatpak/exports/share/applications,
-// /usr/local/share/applications,
-// /usr/share/applications,
-// /var/lib/snapd/desktop/applications
-
-Future<String> installFromFile(File file, {
+Future<String> installDesktopFileFromFile(File file, {
   required String installationDirectoryPath,
-  Future<String> Function()? getPassword
     }) async {
-  // Deliberate decision not to throw errors based on runtime platform at this time.
-  if (Platform.isLinux == false) {
-    return '';
-  }
-
   if (!file.existsSync()) {
     throw const FileSystemException('File not found');
   }
+  print(installationDirectoryPath);
+  Directory(installationDirectoryPath).createSync(recursive: true);
+
   final appliedDestinationDirectoryPath = installationDirectoryPath;
   log('Installing from... ${file.path}');
   log('Installing to... $appliedDestinationDirectoryPath');
 
+  // Install .desktop file
   const processName = 'desktop-file-install';
   final arguments = [
     file.path,
-    '--dir=$appliedDestinationDirectoryPath'
+    '--dir=$appliedDestinationDirectoryPath',
+    '--rebuild-mime-info-cache'
   ];
 
   final fileInstall = await Process.run(
@@ -72,9 +63,11 @@ Future<String> installFromFile(File file, {
   }
 
   final updateDatabase = await Process.run(
-      'update-desktop-database',
-      [],
-      runInShell: true
+    'update-desktop-database',
+    [
+      appliedDestinationDirectoryPath
+    ],
+    runInShell: true
   );
 
   try {
@@ -96,8 +89,7 @@ Future<String> installFromFile(File file, {
   }
 }
 
-// todo: Allow admin permissions
-Future<void> uninstall(File file) async {
+Future<void> uninstallDesktopFile(File file) async {
   // Deliberate decision not to throw errors based on runtime platform at this time.
   if (Platform.isLinux == false) {
     return;
@@ -111,8 +103,55 @@ Future<void> uninstall(File file) async {
 
     await Process.run(
         'update-desktop-database',
-        [],
+        [
+          file.parent.absolute.path
+        ],
         runInShell: true
     );
+  }
+}
+
+/*
+  D-BUS
+*/
+Future<String> installDbusServiceFromMemory({
+  required String filenameNoExtension,
+  required DBusFileContents dBusServiceContents,
+  required String installationPath,
+}) async {
+  final file = await DBusFileContents.toFile(filenameNoExtension, dBusServiceContents);
+  return installDbusServiceFromFile(
+    file,
+    installationDirectoryPath: installationPath,
+  );
+}
+
+Future<String> installDbusServiceFromFile(File file, {
+  required String installationDirectoryPath,
+}) async {
+  print(installationDirectoryPath);
+  Directory(installationDirectoryPath).createSync(recursive: true);
+  final appliedDestinationDirectoryPath = installationDirectoryPath;
+
+  final pathContext = Context(style: Style.posix);
+  final destinationFilePath = pathContext.join(appliedDestinationDirectoryPath, pathContext.basename(file.path));
+
+  final destinationFile = File(destinationFilePath);
+  destinationFile.writeAsBytesSync(file.readAsBytesSync());
+
+  if (destinationFile.existsSync() && destinationFile.readAsBytesSync().length == file.readAsBytesSync().length) {
+    return destinationFilePath;
+  } else {
+    throw FileSystemException('Installation failed.', destinationFilePath);
+  }
+}
+
+Future<void> uninstallDbusServiceFile(File file) async {
+  if (!file.existsSync()) {
+    throw const FileSystemException('File did not exist');
+  }
+  
+  if (file.existsSync()) {
+    file.deleteSync();
   }
 }

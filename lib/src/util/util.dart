@@ -1,5 +1,6 @@
 import 'dart:developer';
 import 'dart:io' show Process, ProcessResult;
+
 import 'package:collection/collection.dart';
 import 'package:desktop_entry/src/model/variant_map_entry.dart';
 
@@ -95,7 +96,7 @@ List<String> extractContents(String input, String startChar, String endChar) {
   return matches;
 }
 
-handleLocalisableList<T extends DesktopEntryType>(
+handleLocalisableList<T extends SpecificationType>(
     Map map, String relevantKey, VariantMapEntry entry, List<String> relevantComments, T Function(dynamic) processValues) {
   bool objectExists = map[relevantKey] != null;
 

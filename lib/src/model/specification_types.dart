@@ -3,8 +3,8 @@ import 'dart:io' if (dart.library.html) 'dart:html' show File, FileMode;
 
 import 'package:collection/collection.dart';
 import 'package:desktop_entry/desktop_entry.dart';
+
 import '../util/build_line.dart';
-import 'desktop_entry.dart';
 import 'interface/write_to_file.dart';
 import 'mixin/comments_mixin.dart';
 import 'mixin/supports_modifiers_mixin.dart';
@@ -21,9 +21,89 @@ const _escapeSequences = [
   '\f', // ASCII form feed
 ];
 
+///  Values of type [SpecificationInterfaceName] must be a path to a file. For D-BUS
+///  service files this should be a path to an executable.
+class SpecificationInterfaceName extends SpecificationType<String> implements FileWritable {
+  SpecificationInterfaceName(super.value, {
+    List<String>? comments,
+  }) {
+    this.comments = comments ?? <String>[];
+  }
+
+  SpecificationInterfaceName copyWith({String? value, List<String>? comments}) {
+    return SpecificationInterfaceName(value ?? this.value, comments: comments ?? List.of(this.comments));
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return other is SpecificationInterfaceName &&
+        value == other.value &&
+        const ListEquality().equals(comments, other.comments);
+  }
+
+  @override
+  int get hashCode => value.hashCode ^ comments.hashCode;
+
+  @override
+  writeToFile(File file, String? key) {
+    for (var comment in comments) {
+      file.writeAsStringSync(buildComment(comment), mode: FileMode.writeOnlyAppend);
+    }
+    file.writeAsStringSync(buildLine(key!, value), mode: FileMode.writeOnlyAppend);
+  }
+
+  @override
+  toString() {
+    return 'SpecificationInterfaceName{ '
+      'value: $value, '
+      'comments: $comments, '
+      '}';
+  }
+}
+
+///  Values of type [SpecificationFilePath] must be a path to a file. For D-BUS
+///  service files this should be a path to an executable.
+class SpecificationFilePath extends SpecificationType<Uri> implements FileWritable {
+  SpecificationFilePath(super.value, {
+    List<String>? comments,
+  }) {
+    this.comments = comments ?? <String>[];
+  }
+
+  SpecificationFilePath copyWith({Uri? value, List<String>? comments}) {
+    return SpecificationFilePath(value ?? this.value, comments: comments ?? List.of(this.comments));
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return other is SpecificationFilePath &&
+      value == other.value &&
+      const ListEquality().equals(comments, other.comments);
+  }
+
+  @override
+  int get hashCode => value.hashCode ^ comments.hashCode;
+
+  @override
+  writeToFile(File file, String? key) {
+    for (var comment in comments) {
+      file.writeAsStringSync(buildComment(comment), mode: FileMode.writeOnlyAppend);
+    }
+    file.writeAsStringSync(buildLine(key!, value.path), mode: FileMode.writeOnlyAppend);
+  }
+
+  @override
+  toString() {
+    return 'SpecificationFilePath{ '
+      'value: $value, '
+      'comments: $comments, '
+      '}';
+  }
+}
+
 ///  Values of type [SpecificationString] may contain all ASCII characters except for
 ///  control characters.
-class SpecificationString extends DesktopEntryType<String> implements FileWritable {
+class SpecificationString extends SpecificationType<String> implements FileWritable {
   SpecificationString(super.value, {
     List<String>? comments,
   }) {
@@ -68,7 +148,7 @@ class SpecificationString extends DesktopEntryType<String> implements FileWritab
 
 ///  Values of type [SpecificationLocaleString] are user displayable, and are encoded in
 ///  UTF-8.
-class SpecificationLocaleString extends DesktopEntryType<String>
+class SpecificationLocaleString extends SpecificationType<String>
   with SupportsModifiersMixin<SpecificationLocaleString> implements FileWritable {
   SpecificationLocaleString(super.value, {
     List<String>? comments,
@@ -125,7 +205,7 @@ class SpecificationLocaleString extends DesktopEntryType<String>
 ///  these may be absolute paths, or symbolic names for icons located using
 ///  the algorithm described in the Icon Theme Specification.
 ///  Such values are not user-displayable, and are encoded in UTF-8.
-class SpecificationIconString extends DesktopEntryType<String>
+class SpecificationIconString extends SpecificationType<String>
     with SupportsModifiersMixin<SpecificationIconString> implements FileWritable {
   SpecificationIconString(super.value, {Map<String, SpecificationIconString>? localisedValues, List<String>? comments}) {
     this.modifiers = localisedValues ?? <String, SpecificationIconString>{};
@@ -179,7 +259,7 @@ class SpecificationIconString extends DesktopEntryType<String>
 }
 
 /// Values of type boolean must either be the string true or false.
-class SpecificationBoolean extends DesktopEntryType<bool> implements FileWritable {
+class SpecificationBoolean extends SpecificationType<bool> implements FileWritable {
   SpecificationBoolean(super.value, {List<String>? comments}) {
     this.comments = comments ?? <String>[];
   }
@@ -224,7 +304,7 @@ class SpecificationBoolean extends DesktopEntryType<bool> implements FileWritabl
 ///  Values of type [SpecificationNumeric] must be a valid floating point number as recognized
 ///  by the %f specifier for scanf in the C locale.
 ///  Not used according to the specification table.
-class SpecificationNumeric extends DesktopEntryType<double> implements FileWritable {
+class SpecificationNumeric extends SpecificationType<double> implements FileWritable {
   SpecificationNumeric(super.value, {List<String>? comments}) {
     this.comments = comments ?? <String>[];
   }
@@ -266,8 +346,8 @@ class SpecificationNumeric extends DesktopEntryType<double> implements FileWrita
   }
 }
 
-abstract class DesktopEntryType<T> with CommentsMixin {
-  DesktopEntryType(this.value);
+abstract class SpecificationType<T> with CommentsMixin {
+  SpecificationType(this.value);
 
   T value;
 
@@ -277,7 +357,7 @@ abstract class DesktopEntryType<T> with CommentsMixin {
   }
 }
 
-class SpecificationTypeList<T extends DesktopEntryType> extends ListBase<T> with CommentsMixin, FileWritable {
+class SpecificationTypeList<T extends SpecificationType> extends ListBase<T> with CommentsMixin, FileWritable {
   SpecificationTypeList(List<T> primitiveList, {
     List<String>? comments,
   }) {
@@ -358,7 +438,7 @@ class SpecificationTypeList<T extends DesktopEntryType> extends ListBase<T> with
   }
 }
 
-class LocalisableSpecificationTypeList<T extends DesktopEntryType>
+class LocalisableSpecificationTypeList<T extends SpecificationType>
     extends SpecificationTypeList<T> with SupportsModifiersMixin<List<T>> {
   LocalisableSpecificationTypeList(super.primitiveList, {
     super.comments,

@@ -15,7 +15,8 @@ and the Flutter guide for
 
 [![pub package](https://img.shields.io/pub/v/desktop_entry.svg)](https://pub.dev/packages/desktop_entry)
 
-A Flutter plugin for managing Desktop Entry files (.desktop) on Linux.
+A Flutter plugin for managing Desktop Entry files (.desktop) and DBus Service files in Linux 
+environments.
 
 ## Getting started
 
@@ -47,86 +48,17 @@ Name=Create a new Foo!
 Icon=fooview-new
 ```
 
-## Usage
+## Scope
 
-### Installing / Uninstalling Desktop Entry files
+The API at this time handles creation of .desktop specification files and DBus service files, and
+installing them to the local user directory. It has been written to the 2020 version of the Desktop 
+Entry specification. This library does not perform validation of the various keys to ensure 
+correctness at this time. 
 
-```
-// Example: Generating Desktop Entry file from inside the application itself
-//
-final desktopEntryFromInsideApp = DesktopEntry(
-    type: entryType,
-    entryName: entryName,
-    exec: string('${Platform.resolvedExecutable} %u')
-);
+However, the choice to implement various types (language concept) that 
+correspond to the various 'types' (specification concept) of the specification is a deliberate one, 
+intended to make hint that these values are not quite simple strings.
 
-
-// Example: Generating Desktop Entry file from inside an installer or
-//          launcher external to the end user application
-//
-final uri = Uri.parse(Platform.resolvedExecutable);
-final pathToDirectoryComponents = uri.pathSegments
-    .sublist(0, uri.pathSegments.length - 1)
-    .join('/');
-const yourExecName = 'externalFlutterApp';
-final validPathToExecutable = '/$pathToDirectoryComponents/$yourExecName';
-
-final desktopEntryFromOutsideApp = DesktopEntry(
-    type: entryType,
-    entryName: entryName,
-    exec: string('$validPathToExecutable %u')
-);
-
-// Example: Your application installation flow has created an alias on the
-// user's machine.
-//
-const alias = 'yourAppAlias';
-
-final desktopEntryForAppWithAlias = DesktopEntry(
-    type: entryType,
-    entryName: entryName,
-    exec: string('$alias %u')
-);
-
-// Install - filename parameter should not include extension. All Desktop Entry files end in [.desktop].
-installFromMemory(entry: entry, filename: filename);
-
-// Uninstall - 
-uninstall(File file)
-
-```
-
-### Custom Scheme indicative usage
-
-Use `desktop_entry` in conjunction with [app_links](https://pub.dev/packages/app_links) to support custom schemes on 
-all mobile and desktop platforms in Flutter!
-```
-// e.g. Custom Scheme is fooview://arg1=val1&arg2=val2
-const baseScheme = 'fooview';
-
-void main(List<String> arguments) {
-    // ...
-  
-    arguments.forEach((argument) {
-      try {
-        final uriCandidate = uri.parse(argument);
-        
-        if (uriCandidate.isScheme(baseScheme)) {
-          handleUri(uriCandidate);
-        }
-      } catch (exception) {
-        // Exception is thrown inside [Uri.parse] 
-        // if argument is not a valid URI
-      }
-    });
-    
-    // ...
-}
-
-void handleUri(Uri candidate) {
-  // Your application-specific logic.
-}
-```
 
 ## Additional information
 

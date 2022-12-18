@@ -1,16 +1,17 @@
 # desktop_entry_example
 
-A new Flutter project.
+### Custom Scheme indicative usage
 
-## Getting Started
+You could `desktop_entry` in conjunction with [app_links](https://pub.dev/packages/app_links) to 
+support custom schemes on all mobile and desktop platforms in Flutter!
 
-This project is a starting point for a Flutter application.
+The example project demonstrates this. Using DBus, Desktop Entry files, and a DBus Service file, 
+it is possible to have your app handle custom URI schemes. 
 
-A few resources to get you started if this is your first Flutter project:
-
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
-
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+The approach in this project: 
+- A DBus service is used to allow the application to receive messages - at launch and anytime during
+ the session lifecycle.
+- An Desktop Entry file for a 'launcher' is created - this is a simple bash script that sends a 
+ message to the application via DBus, which activates the first instance if there is no instance 
+ active. Custom URI schemes are registered against the launcher, not the application directly.
+- A Desktop Entry file for the application is created, to register the DBus service.

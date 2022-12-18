@@ -40,6 +40,9 @@ dependencies:
   shell: ^2.0.0
   xdg_directories: ^0.2.0+2
   dbus: ^0.7.8
+  intl: ^0.17.0
+  collection: ^1.16.0
+  path: ^1.8.2
 
 dev_dependencies:
   flutter_test:

@@ -2,31 +2,59 @@
 // dart-dbus generate-object lib/model/dbus-interface.xml
 
 import 'package:dbus/dbus.dart';
+import '../const.dart';
+
+enum FreeDesktopResponse {
+  none,
+  activate,
+  open,
+  activateAction
+}
 
 class DevMarkvideonDesktopEntryExampleObject extends DBusObject {
-  Function(Map<String, dynamic> data)? callback;
+  Function(Map<String, DBusValue> platform_data,  {
+    FreeDesktopResponse? response,
+    List<String>? uris,
+    String? action_name,
+    List<String>? parameter
+  })? callback;
 
   /// Creates a new object to expose on [path].
   DevMarkvideonDesktopEntryExampleObject({this.callback,
-    DBusObjectPath path = const DBusObjectPath.unchecked('/dev/markvideon/DesktopEntryExample/Object'
+    DBusObjectPath path = const DBusObjectPath.unchecked(objectPath
   )}) : super(path);
+
 
   /// Implementation of org.freedesktop.Application.Activate()
   Future<DBusMethodResponse> doActivate(Map<String, DBusValue> platform_data) async {
-    callback?.call(platform_data);
-    return DBusMethodSuccessResponse();
+    try {
+      await callback?.call(platform_data, response: FreeDesktopResponse.activate);
+      return DBusMethodSuccessResponse();
+    } catch (error) {
+      return DBusMethodErrorResponse('${error.runtimeType}');
+    }
   }
 
   /// Implementation of org.freedesktop.Application.Open()
   Future<DBusMethodResponse> doOpen(List<String> uris, Map<String, DBusValue> platform_data) async {
-    callback?.call(platform_data);
-    return DBusMethodErrorResponse.failed('org.freedesktop.Application.Open() not implemented');
+    try {
+      await callback?.call(platform_data, uris: uris, response: FreeDesktopResponse.open);
+      return DBusMethodSuccessResponse(uris.map((e) => DBusString(e)).toList(growable: false));
+    } catch (error) {
+      return DBusMethodErrorResponse('${error.runtimeType}');
+    }
   }
 
   /// Implementation of org.freedesktop.Application.ActivateAction()
   Future<DBusMethodResponse> doActivateAction(String action_name, List<DBusValue> parameter, Map<String, DBusValue> platform_data) async {
-    callback?.call(platform_data);
-    return DBusMethodErrorResponse.failed('org.freedesktop.Application.ActivateAction() not implemented');
+    try {
+      await callback?.call(platform_data,
+          response: FreeDesktopResponse.activateAction,
+          parameter: parameter.map((e) => e.toString()).toList(growable: false), action_name: action_name);
+      return DBusMethodSuccessResponse();
+    } catch (error) {
+      return DBusMethodErrorResponse('${error.runtimeType}');
+    }
   }
 
   @override
@@ -43,6 +71,7 @@ class DevMarkvideonDesktopEntryExampleObject extends DBusObject {
         }
         return doActivate(methodCall.values[0].asStringVariantDict());
       } else if (methodCall.name == 'Open') {
+        // asa{sv}
         if (methodCall.signature != DBusSignature('asa{sv}')) {
           return DBusMethodErrorResponse.invalidArgs();
         }

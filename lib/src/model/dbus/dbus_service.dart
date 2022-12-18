@@ -77,7 +77,6 @@ class DBusServiceDefinition with
   }
 
   factory DBusServiceDefinition.fromMap(Map<String, dynamic> map) {
-    print('$map');
     return DBusServiceDefinition(
       name: map[fieldName],
       exec: map[fieldExec],

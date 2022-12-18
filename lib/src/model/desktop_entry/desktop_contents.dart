@@ -110,9 +110,8 @@ class DesktopFileContents with TrailingCommentsMixin, UnrecognisedGroupsMixin {
 
     DesktopSpecificationParseMode parseMode = DesktopSpecificationParseMode.unrecognisedGroup;
     List<String> relevantComments = <String>[];
-    int i = 0;
+
     for (var line in lines) {
-      i++;
       final effectiveLine = line.trim();
       final isCommentLine = effectiveLine.startsWith('#') || effectiveLine.isEmpty;
       final isGroupLine = (effectiveLine.startsWith('[') && effectiveLine.endsWith(']'));

@@ -153,8 +153,8 @@ class SpecificationLocaleString extends SpecificationType<String>
   SpecificationLocaleString(super.value, {
     List<String>? comments,
     Map<String, SpecificationLocaleString>? localisedValues}) {
-    this.modifiers = localisedValues ?? <String, SpecificationLocaleString>{};
-    this.comments = comments ?? <String>[];
+    modifiers = localisedValues ?? <String, SpecificationLocaleString>{};
+    comments = comments ?? <String>[];
   }
 
   SpecificationLocaleString copyWith({
@@ -164,7 +164,7 @@ class SpecificationLocaleString extends SpecificationType<String>
   }) {
     return SpecificationLocaleString(
       value ?? this.value,
-      localisedValues: localisedValues ?? Map.of(this.modifiers),
+      localisedValues: localisedValues ?? Map.of(modifiers),
       comments: comments ?? List.of(this.comments)
     );
   }
@@ -208,8 +208,8 @@ class SpecificationLocaleString extends SpecificationType<String>
 class SpecificationIconString extends SpecificationType<String>
     with SupportsModifiersMixin<SpecificationIconString> implements FileWritable {
   SpecificationIconString(super.value, {Map<String, SpecificationIconString>? localisedValues, List<String>? comments}) {
-    this.modifiers = localisedValues ?? <String, SpecificationIconString>{};
-    this.comments = comments ?? <String>[];
+    modifiers = localisedValues ?? <String, SpecificationIconString>{};
+    comments = comments ?? <String>[];
   }
 
   SpecificationIconString copyWith({

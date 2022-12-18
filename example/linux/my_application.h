@@ -2,7 +2,9 @@
 #define FLUTTER_MY_APPLICATION_H_
 
 #include <gtk/gtk.h>
+#include <flutter_linux/flutter_linux.h>
 
+// https://www.manpagez.com/html/gobject/gobject-2.56.0/gobject-Type-Information.php
 G_DECLARE_FINAL_TYPE(MyApplication, my_application, MY, APPLICATION,
                      GtkApplication)
 

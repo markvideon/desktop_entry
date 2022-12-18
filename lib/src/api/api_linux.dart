@@ -31,12 +31,9 @@ Future<String> installDesktopFileFromFile(File file, {
   if (!file.existsSync()) {
     throw const FileSystemException('File not found');
   }
-  print(installationDirectoryPath);
   Directory(installationDirectoryPath).createSync(recursive: true);
 
   final appliedDestinationDirectoryPath = installationDirectoryPath;
-  log('Installing from... ${file.path}');
-  log('Installing to... $appliedDestinationDirectoryPath');
 
   // Install .desktop file
   const processName = 'desktop-file-install';
@@ -129,7 +126,6 @@ Future<String> installDbusServiceFromMemory({
 Future<String> installDbusServiceFromFile(File file, {
   required String installationDirectoryPath,
 }) async {
-  print(installationDirectoryPath);
   Directory(installationDirectoryPath).createSync(recursive: true);
   final appliedDestinationDirectoryPath = installationDirectoryPath;
 

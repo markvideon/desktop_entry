@@ -1,3 +1,4 @@
+import 'dart:developer';
 import 'dart:io';
 
 import 'package:collection/collection.dart';
@@ -37,7 +38,7 @@ class DBusFileContents with TrailingCommentsMixin, UnrecognisedGroupsMixin {
     final pathContext = Context(style: Style.posix);
     final absPath = pathContext.join(tempDir.path, '$name.service');
     final file = File(absPath);
-    print('Trying to create file at: ${file.path}');
+
     if (!file.existsSync()) {
       file.createSync(recursive: true);
     }
@@ -89,9 +90,8 @@ class DBusFileContents with TrailingCommentsMixin, UnrecognisedGroupsMixin {
     DesktopSpecificationParseMode parseMode = DesktopSpecificationParseMode.unrecognisedGroup;
 
     List<String> relevantComments = <String>[];
-    int i = 0;
+
     for (var line in lines) {
-      i++;
       final effectiveLine = line.trim();
       final isCommentLine = effectiveLine.startsWith('#') || effectiveLine.isEmpty;
       final isGroupLine = (effectiveLine.startsWith('[') && effectiveLine.endsWith(']'));
@@ -135,7 +135,7 @@ class DBusFileContents with TrailingCommentsMixin, UnrecognisedGroupsMixin {
 
           switch (parseMode) {
             case DesktopSpecificationParseMode.dbusService:
-              print('Key: ${possibleMapEntry.key}');
+              log('Key: ${possibleMapEntry.key}');
               switch (possibleMapEntry.key) {
                 case DBusServiceDefinition.fieldName:
                   map[DBusFileContents.fieldDBusServiceDefinition][DBusServiceDefinition.fieldName] = SpecificationInterfaceName(possibleMapEntry.value, comments: relevantComments);
@@ -167,7 +167,7 @@ class DBusFileContents with TrailingCommentsMixin, UnrecognisedGroupsMixin {
                   relevantComments = <String>[];
                   continue;
               }
-              continue;
+
             case DesktopSpecificationParseMode.unrecognisedGroup:
               final unrecognisedEntry = UnrecognisedEntry(
                   key: possibleMapEntry.key,

@@ -1,6 +1,6 @@
 [Desktop Entry]
 Type=Application
-Name=FlutterDesktopEntryExample
-DBusActivatable=true
+Name=FlutterDesktopEntryExampleLauncher
+# Exec is path to bash script
 Exec=/home/mark/Documents/dartdesktopentry/example/build/linux/x64/debug/bundle/example %u
-Implements=org.freedesktop.Application;
+MimeType=x-scheme-handler/markvideon;

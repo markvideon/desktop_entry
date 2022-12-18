@@ -1,7 +1,6 @@
 import 'dart:io' if (dart.library.html) 'dart:html' show File;
 
 import 'package:collection/collection.dart';
-import 'package:desktop_entry/desktop_entry.dart';
 
 import '../group_name.dart';
 import '../interface/write_to_file.dart';

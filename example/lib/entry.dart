@@ -5,17 +5,23 @@ import 'package:example/util.dart';
 
 import 'const.dart';
 
-final launcher = DesktopFileContents(
-    entry: DesktopEntry(
-      type: SpecificationString('Application'),
-      name: SpecificationLocaleString('FlutterDesktopEntryExampleLauncher'),
-      exec: SpecificationString('${pathContext.join(pathContext.dirname(Platform.resolvedExecutable), shellScriptName)} %u'),
+Future<DesktopFileContents> launcher() async {
+  final file = await shellScriptFilePath();
+
+  return DesktopFileContents(
+      entry: DesktopEntry(
+          type: SpecificationString('Application'),
+          name: SpecificationLocaleString('FlutterDesktopEntryExampleLauncher'),
+          exec: SpecificationString('${file.path} %u'),
       mimeType: SpecificationTypeList([SpecificationString('x-scheme-handler/$schemeName')])
-    ),
-    actions: <DesktopAction>[],
-    unrecognisedGroups: <UnrecognisedGroup>[],
-    trailingComments: <String>[]
-);
+  ),
+  actions: <DesktopAction>[],
+  unrecognisedGroups: <UnrecognisedGroup>[],
+  trailingComments: <String>[]
+  );
+}
+
+
 
 final entry = DesktopFileContents(
     entry: DesktopEntry(

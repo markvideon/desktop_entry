@@ -1,6 +1,5 @@
 [Desktop Entry]
 Type=Application
 Name=FlutterDesktopEntryExampleLauncher
-# Exec is path to bash script
-Exec=/home/mark/Documents/dartdesktopentry/example/build/linux/x64/debug/bundle/example %u
+Exec=/home/mark/Documents/dartdesktopentry/example/build/linux/x64/debug/bundle/launcher.sh %u
 MimeType=x-scheme-handler/markvideon;

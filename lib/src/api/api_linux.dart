@@ -11,6 +11,31 @@ import '../util/util.dart';
 // https://nyirog.medium.com/register-dbus-service-f923dfca9f1
 
 /*
+  MIME
+*/
+Future<void> setDefaultForMimeTypes(String applicationPath, List<String> mimeTypes) async {
+  if (mimeTypes.isEmpty) {
+    throw Exception('Expected MIME types to be provided.');
+  }
+
+  final defaultSet = await Process.run(
+    'xdg-mime',
+    <String>[
+      'default',
+      applicationPath,
+      ...mimeTypes
+    ],
+    runInShell: true
+  );
+
+  try {
+    checkProcessStdErr(defaultSet);
+  } catch (error) {
+    log('$error');
+  }
+}
+
+/*
   Desktop File
 */
 Future<String> installDesktopFileFromMemory({
@@ -26,8 +51,8 @@ Future<String> installDesktopFileFromMemory({
 }
 
 Future<String> installDesktopFileFromFile(File file, {
-  required String installationDirectoryPath,
-    }) async {
+  required String installationDirectoryPath
+}) async {
   if (!file.existsSync()) {
     throw const FileSystemException('File not found');
   }
@@ -49,6 +74,7 @@ Future<String> installDesktopFileFromFile(File file, {
     runInShell: true
   );
 
+  print('Installing to $appliedDestinationDirectoryPath');
   try {
     checkProcessStdErr(fileInstall);
   } catch (error) {

@@ -2,9 +2,10 @@ import 'dart:io';
 
 import 'package:desktop_entry/desktop_entry.dart';
 import 'package:path/path.dart';
+import 'package:path_provider/path_provider.dart';
 
 import 'const.dart';
-import 'final.dart';
+import 'entry.dart';
 
 final pathContext = Context(style: Style.posix);
 
@@ -12,7 +13,7 @@ Future<void> installShellScript({
   required String dbusName,
   required String objectPath,
 }) async {
-  final shellScript = shellScriptFilePath();
+  final shellScript = await shellScriptFilePath();
 
   shellScript.writeAsStringSync("#!/bin/bash\n", mode: FileMode.writeOnly);
   shellScript.writeAsStringSync("gdbus call --session --dest $dbusName \\\n", mode: FileMode.writeOnlyAppend);
@@ -31,20 +32,29 @@ Future<void> installShellScript({
 }
 
 Future<void> uninstallShellScript() async {
-  final shellScript = shellScriptFilePath();
+  final shellScript = await shellScriptFilePath();
   shellScript.deleteSync();
 }
 
 Future<void> installShellScriptDesktopEntry(String destinationPath) async {
-  await installDesktopFileFromMemory(
-      contents: launcher,
-      filenameNoExtension: shellScriptDesktopName,
-      installationPath: destinationPath
+  final pathToDirectory = pathContext.dirname(desktopEntryFilePath(destinationPath, shellScriptDesktopName).path);
+
+  final launcherContents = await launcher();
+  final desktopFilePath = await installDesktopFileFromMemory(
+    contents: launcherContents,
+    filenameNoExtension: shellScriptDesktopName,
+    installationPath: pathToDirectory
+  );
+
+  await setDefaultForMimeTypes(
+    desktopFilePath,
+      launcherContents.entry.mimeType!.map((element) => element.value).toList(growable: false)
   );
 }
 
 Future<void> uninstallShellScriptDesktopEntry(e) async {
-  await uninstallAppDesktopFile(e, desktopFileName: shellScriptDesktopName);
+  final file = desktopEntryFilePath(e, shellScriptDesktopName);
+  await uninstallDesktopFile(file);
 }
 
 Future<void> installAppDesktopFile(e, {String? desktopFileName}) async {
@@ -87,13 +97,16 @@ File desktopEntryFilePath(String basePath, String desktopFileName) {
   return File(pathToFile);
 }
 
-File shellScriptFilePath() {
-  final basePath = pathContext.dirname(Platform.executable);
+// todo: Move this file to another directory. Each time the app builds the
+//  file will be removed if it is set to the executable directory.
+Future<File> shellScriptFilePath() async {
+  final supportDir = await getApplicationSupportDirectory();
+
+  final basePath = supportDir.path;
   final pathToFile = pathContext.join(
       basePath,
-      shellScriptName,
-      '.sh'
+      '$shellScriptName.sh',
   );
-  
+
   return File(pathToFile);
 }

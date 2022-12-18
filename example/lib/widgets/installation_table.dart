@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:collection/collection.dart';
 import 'package:example/const.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/scheduler.dart';
 import 'package:xdg_directories/xdg_directories.dart';
 
 import '../util.dart';
@@ -21,33 +22,62 @@ class _InstallationTableState extends State<InstallationTable> {
   Map<String, bool> shellInstallation = {};
   Map<String, bool> shellDesktopInstallation = {};
 
-  checkDesktopInstallation(String basePath) {
-    final exists = desktopEntryFilePath(basePath, dbusName).existsSync();
-    setState(() {
-      desktopInstallations[basePath] = exists;
+  @override
+  initState() {
+    super.initState();
+
+    SchedulerBinding.instance.addPostFrameCallback((timeStamp) {
+      checkShellInstallation(toggleSetState: false);
+
+      for (var e in [dataHome, ...dataDirs]) {
+        checkDbusInstallation(e.path, toggleSetState: false);
+        checkDesktopInstallation(e.path, toggleSetState: false);
+        checkShellDesktopInstallation(e.path, toggleSetState: false);
+
+        setState(() {
+          //
+        });
+      }
     });
   }
 
-  checkDbusInstallation(String basePath) {
-    final exists = dbusFilePath(basePath, dbusName).existsSync();
-    setState(() {
-      dBusInstallations[basePath] = exists;
-    });
+  checkDesktopInstallation(String basePath, {bool toggleSetState = true}) {
+    desktopInstallations[basePath] = desktopEntryFilePath(basePath, dbusName).existsSync();
+    if (toggleSetState) {
+      setState(() {
+      //
+      });
+    }
   }
 
-  checkShellInstallation() {
-    final shellFile = shellScriptFilePath();
-    final exists = shellScriptFilePath().existsSync();
-    setState(() {
-      shellInstallation[shellFile.path] = exists;
-    });
+  checkDbusInstallation(String basePath, {bool toggleSetState = true}) {
+    dBusInstallations[basePath] = dbusFilePath(basePath, dbusName).existsSync();
+    if (toggleSetState) {
+      setState(() {
+        //
+      });
+    }
   }
 
-  checkShellDesktopInstallation(String basePath) {
+  checkShellInstallation({bool toggleSetState = true}) async {
+    final shellFile = await shellScriptFilePath();
+    shellInstallation[shellFile.path] = shellFile.existsSync();
+    if (toggleSetState) {
+      setState(() {
+      //
+      });
+    }
+  }
+
+  checkShellDesktopInstallation(String basePath, {bool toggleSetState = true}) {
     final exists = desktopEntryFilePath(basePath, shellScriptDesktopName).existsSync();
-    setState(() {
-      shellDesktopInstallation[basePath] = exists;
-    });
+    shellDesktopInstallation[basePath] = exists;
+
+    if (toggleSetState) {
+      setState(() {
+        //
+      });
+    }
   }
 
   @override
@@ -80,7 +110,7 @@ class _InstallationTableState extends State<InstallationTable> {
                                   canCall: desktopInstallations[e.path] == false,
                                   label: 'Install',
                                   onCall: () async {
-                                    installAppDesktopFile(e).then((_) {
+                                    installAppDesktopFile(e.path).then((_) {
                                       checkDesktopInstallation(e.path);
                                     });
                                   }),
@@ -88,7 +118,7 @@ class _InstallationTableState extends State<InstallationTable> {
                                 canCall: desktopInstallations[e.path] == true,
                                 label: 'Uninstall',
                                 onCall: () async {
-                                  uninstallAppDesktopFile(e).then((_) {
+                                  uninstallAppDesktopFile(e.path).then((_) {
                                     checkDesktopInstallation(e.path);
                                   });
                                 },
@@ -101,7 +131,7 @@ class _InstallationTableState extends State<InstallationTable> {
                                     canCall: dBusInstallations[e.path] == false,
                                     label: 'Install',
                                     onCall: () async {
-                                      installAppDbusServiceFile(e).then((_) {
+                                      installAppDbusServiceFile(e.path).then((_) {
                                         checkDbusInstallation(e.path);
                                       });
                                     }),
@@ -109,7 +139,7 @@ class _InstallationTableState extends State<InstallationTable> {
                                   canCall: dBusInstallations[e.path] == true,
                                   label: 'Uninstall',
                                   onCall: () async {
-                                    uninstallAppDbusServiceFile(e).then((_) {
+                                    uninstallAppDbusServiceFile(e.path).then((_) {
                                       checkDbusInstallation(e.path);
                                     });
                                   },
@@ -117,25 +147,44 @@ class _InstallationTableState extends State<InstallationTable> {
                               ])
                           ),
                           DataCell(
-                              Row(children: [
-                                InstallButton(
-                                    canCall: shellInstallation[e.path] == false,
-                                    label: 'Install',
-                                    onCall: () async {
-                                      installShellScript(dbusName: dbusName, objectPath: objectPath).then((_) {
-                                        checkShellInstallation();
-                                      });
-                                    }),
-                                InstallButton(
-                                  canCall: shellInstallation[e.path] == true,
-                                  label: 'Uninstall',
-                                  onCall: () async {
-                                    uninstallShellScript().then((_) {
-                                      checkShellInstallation();
-                                    });
-                                  },
-                                ),
-                              ])
+                            FutureBuilder(
+                              future: shellScriptFilePath(),
+                              builder: (context, snapshot) {
+                                if (snapshot.hasData) {
+                                  return Row(
+                                    children: [
+                                      InstallButton(
+                                          canCall: shellInstallation[snapshot.data!.path] == false,
+                                          label: 'Install',
+                                          onCall: () async {
+                                            installShellScript(dbusName: dbusName, objectPath: objectPath).then((_) {
+                                              checkShellInstallation();
+                                            });
+                                          }),
+                                      InstallButton(
+                                        canCall: shellInstallation[snapshot.data!.path] == true,
+                                        label: 'Uninstall',
+                                        onCall: () async {
+                                          uninstallShellScript().then((_) {
+                                            checkShellInstallation();
+                                          });
+                                        },
+                                      ),
+                                  ]);
+                                }
+                                return Row(children: [
+                                  InstallButton(
+                                      canCall: false,
+                                      label: 'Install',
+                                      onCall: () => null),
+                                  InstallButton(
+                                    canCall: false,
+                                    label: 'Uninstall',
+                                    onCall: () => null,
+                                  ),
+                                ]);
+                              }
+                            ),
                           ),
                           DataCell(
                             Row(children: [
@@ -151,7 +200,7 @@ class _InstallationTableState extends State<InstallationTable> {
                                 canCall: shellDesktopInstallation[e.path] == true,
                                 label: 'Uninstall',
                                 onCall: () async {
-                                  uninstallShellScriptDesktopEntry(e).then((_) {
+                                  uninstallShellScriptDesktopEntry(e.path).then((_) {
                                     checkShellDesktopInstallation(e.path);
                                   });
                                 },

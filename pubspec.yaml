@@ -1,5 +1,6 @@
 name: desktop_entry
-description: A new Flutter package project.
+description: A Flutter plugin for managing Desktop Entry files (.desktop) and DBus Service files in
+  Linux environments.
 version: 1.0.0
 homepage: https://markvideon.dev
 

@@ -23,9 +23,16 @@ dev_dependencies:
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
+# This package supports only Linux.
+platforms:
+  linux:
+
 
 # The following section is specific to Flutter packages.
 flutter:
+  plugin:
+    platforms:
+      linux:
 
   # To add assets to your package, add an assets section, like this:
   # assets:

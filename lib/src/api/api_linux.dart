@@ -74,7 +74,6 @@ Future<String> installDesktopFileFromFile(File file, {
     runInShell: true
   );
 
-  print('Installing to $appliedDestinationDirectoryPath');
   try {
     checkProcessStdErr(fileInstall);
   } catch (error) {

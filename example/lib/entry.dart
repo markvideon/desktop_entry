@@ -21,8 +21,6 @@ Future<DesktopFileContents> launcher() async {
   );
 }
 
-
-
 final entry = DesktopFileContents(
     entry: DesktopEntry(
       type: SpecificationString('Application'),

@@ -1,0 +1,11 @@
+gdbus call --session --dest dev.markvideon.DesktopEntryExample \
+ --object-path /dev/markvideon/DesktopEntryExample/Object \
+ --method org.freedesktop.Application.Activate {}
+
+gdbus call --session --dest dev.markvideon.DesktopEntryExample \
+  --object-path /dev/markvideon/DesktopEntryExample/Object \
+ --method org.freedesktop.Application.Open "['markvideon://myTestUri']" {}
+
+gdbus call --session --dest dev.markvideon.DesktopEntryExample \
+  --object-path /dev/markvideon/DesktopEntryExample/Object  \
+  --method org.freedesktop.Application.Open "['markvideon://aadsfsdff23343423yo']" {}

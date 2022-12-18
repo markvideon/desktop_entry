@@ -1,0 +1,9 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="Check XDG Directory Exists" type="FlutterTestConfigType" factoryName="Flutter Test" folderName="Desktop Entry">
+    <option name="testName" value="Check XDG Directory Exists" />
+    <option name="testFile" value="$PROJECT_DIR$/test/desktop_entry_test.dart" />
+    <option name="useRegexp" value="false" />
+    <option name="additionalArgs" value="" />
+    <method v="2" />
+  </configuration>
+</component>

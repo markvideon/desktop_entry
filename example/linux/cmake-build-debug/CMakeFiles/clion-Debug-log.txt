@@ -1,0 +1,17 @@
+/snap/clion/218/bin/cmake/linux/bin/cmake -DCMAKE_BUILD_TYPE=Debug -DCMAKE_MAKE_PROGRAM=/snap/clion/218/bin/ninja/linux/ninja -G Ninja -S /home/mark/Documents/dartdesktopentry/example/linux -B /home/mark/Documents/dartdesktopentry/example/linux/cmake-build-debug
+-- The CXX compiler identification is GNU 11.3.0
+-- Detecting CXX compiler ABI info
+-- Detecting CXX compiler ABI info - done
+-- Check for working CXX compiler: /usr/bin/c++ - skipped
+-- Detecting CXX compile features
+-- Detecting CXX compile features - done
+CMake Error at /snap/clion/218/bin/cmake/linux/share/cmake-3.24/Modules/FindPackageHandleStandardArgs.cmake:230 (message):
+  Could NOT find PkgConfig (missing: PKG_CONFIG_EXECUTABLE)
+Call Stack (most recent call first):
+  /snap/clion/218/bin/cmake/linux/share/cmake-3.24/Modules/FindPackageHandleStandardArgs.cmake:594 (_FPHSA_FAILURE_MESSAGE)
+  /snap/clion/218/bin/cmake/linux/share/cmake-3.24/Modules/FindPkgConfig.cmake:99 (find_package_handle_standard_args)
+  flutter/CMakeLists.txt:24 (find_package)
+
+
+-- Configuring incomplete, errors occurred!
+See also "/home/mark/Documents/dartdesktopentry/example/linux/cmake-build-debug/CMakeFiles/CMakeOutput.log".

@@ -1,0 +1,6 @@
+[Desktop Entry]
+Type=Application
+Name=FlutterDesktopEntryExample
+DBusActivatable=true
+Exec=/home/mark/Documents/dartdesktopentry/example/build/linux/x64/debug/bundle/example %u
+Implements=org.freedesktop.Application;

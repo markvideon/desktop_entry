@@ -1,0 +1,9 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="true" type="FlutterTestConfigType" factoryName="Flutter Test">
+    <option name="testName" value="Example File Parsed Successfully" />
+    <option name="testFile" value="test/desktop_entry_test.dart" />
+    <option name="useRegexp" value="false" />
+    <option name="additionalArgs" value="" />
+    <method v="2" />
+  </configuration>
+</component>

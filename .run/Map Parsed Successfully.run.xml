@@ -1,0 +1,9 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="Install Desktop Entry - Existing" type="FlutterTestConfigType" factoryName="Flutter Test" folderName="Desktop Entry">
+    <option name="testName" value="Install Desktop Entry - Existing" />
+    <option name="testFile" value="$PROJECT_DIR$/test/desktop_entry_test.dart" />
+    <option name="useRegexp" value="false" />
+    <option name="additionalArgs" value="--verbose" />
+    <method v="2" />
+  </configuration>
+</component>

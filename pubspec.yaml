@@ -1,7 +1,7 @@
 name: desktop_entry
 description: A new Flutter package project.
 version: 1.0.0
-homepage: markvideon.dev
+homepage: https://markvideon.dev
 
 environment:
   sdk: '>=2.18.1 <3.0.0'

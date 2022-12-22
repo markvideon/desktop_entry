@@ -1,3 +1,7 @@
+## 1.0.0+1 
+* Removed dependency on Flutter. 
+* Generated documentation using dart doc. 
+
 ## 1.0.0
 
 * Initial release.

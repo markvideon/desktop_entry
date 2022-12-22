@@ -15,7 +15,7 @@ and the Flutter guide for
 
 [![pub package](https://img.shields.io/pub/v/desktop_entry.svg)](https://pub.dev/packages/desktop_entry)
 
-A Flutter plugin for managing Desktop Entry files (.desktop) and DBus Service files in Linux 
+A Dart package for managing Desktop Entry files (.desktop) and DBus Service files in Linux 
 environments.
 
 ## Getting started

@@ -16,7 +16,9 @@ and the Flutter guide for
 [![pub package](https://img.shields.io/pub/v/desktop_entry.svg)](https://pub.dev/packages/desktop_entry)
 
 A Dart package for managing Desktop Entry files (.desktop) and DBus Service files in Linux 
-environments.
+environments. Some tests depend on [path_provider] to access a temporary directory on the system, 
+which depends on the Flutter SDK. The example project is a Flutter project. This package should be 
+otherwise compatible with other Dart projects.
 
 ## Getting started
 

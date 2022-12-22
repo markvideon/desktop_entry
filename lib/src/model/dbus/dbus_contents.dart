@@ -5,7 +5,6 @@ import 'package:collection/collection.dart';
 import 'package:desktop_entry/desktop_entry.dart';
 import 'package:desktop_entry/src/model/mixin/comments_mixin.dart';
 import 'package:path/path.dart';
-import 'package:path_provider/path_provider.dart';
 
 import '../../util/build_line.dart';
 import '../../util/parse_line.dart';
@@ -31,10 +30,9 @@ class DBusFileContents with TrailingCommentsMixin, UnrecognisedGroupsMixin {
   static const fieldDBusServiceDefinition = 'dBusServiceDefinition';
   DBusServiceDefinition dBusServiceDefinition;
 
-
-  static Future<File> toFile(String name, DBusFileContents contents) async {
+  ///
+  static Future<File> toFile(Directory tempDir, String name, DBusFileContents contents) async {
     // Create file
-    final tempDir = await getTemporaryDirectory();
     final pathContext = Context(style: Style.posix);
     final absPath = pathContext.join(tempDir.path, '$name.service');
     final file = File(absPath);

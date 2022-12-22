@@ -40,7 +40,9 @@ Future<void> installShellScriptDesktopEntry(String destinationPath) async {
   final pathToDirectory = pathContext.dirname(desktopEntryFilePath(destinationPath, shellScriptDesktopName).path);
 
   final launcherContents = await launcher();
+  final tempDir = await getTemporaryDirectory();
   final desktopFilePath = await installDesktopFileFromMemory(
+    tempDir: tempDir,
     contents: launcherContents,
     filenameNoExtension: shellScriptDesktopName,
     installationPath: pathToDirectory
@@ -59,8 +61,10 @@ Future<void> uninstallShellScriptDesktopEntry(e) async {
 
 Future<void> installAppDesktopFile(e, {String? desktopFileName}) async {
   final pathToDirectory = pathContext.dirname(desktopEntryFilePath(e, desktopFileName ?? dbusName).path);
+  final tempDir = await getTemporaryDirectory();
 
   await installDesktopFileFromMemory(
+      tempDir: tempDir,
       contents: entry,
       filenameNoExtension: desktopFileName ?? dbusName,
       installationPath: pathToDirectory
@@ -74,11 +78,13 @@ Future<void> uninstallAppDesktopFile(e, {String? desktopFileName}) async {
 
 Future<void> installAppDbusServiceFile(e) async {
   final pathToDirectory = pathContext.dirname(dbusFilePath(e, dbusName).path);
+  final tempDir = await getTemporaryDirectory();
 
   await installDbusServiceFromMemory(
-      dBusServiceContents: dbus,
-      filenameNoExtension: dbusName,
-      installationPath: pathToDirectory
+    tempDir: tempDir,
+    dBusServiceContents: dbus,
+    filenameNoExtension: dbusName,
+    installationPath: pathToDirectory
   );
 }
 

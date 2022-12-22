@@ -1,7 +1,8 @@
 import 'dart:io';
 
 import 'package:desktop_entry/desktop_entry.dart';
-import 'package:test/test.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:flutter_test/flutter_test.dart';
 
 final sampleDbusService = DBusFileContents(
   dBusServiceDefinition: DBusServiceDefinition(
@@ -15,7 +16,6 @@ final sampleDbusService = DBusFileContents(
 );
 
 void main() async {
-  //
   test('Parse D-BUS Service File Correctly', () async {
     const filename = 'example.service';
     const existingPath = 'test/$filename';
@@ -26,7 +26,8 @@ void main() async {
   });
 
   test('Write D-BUS Service to File Correctly', () async {
-    final file = await DBusFileContents.toFile('name', sampleDbusService);
+    final dir = await getTemporaryDirectory();
+    final file = await DBusFileContents.toFile(dir, 'name', sampleDbusService);
     final readFromFile = DBusFileContents.fromFile(file);
 
     expect(readFromFile == sampleDbusService, true);

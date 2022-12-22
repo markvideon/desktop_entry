@@ -1,7 +1,8 @@
 import 'dart:developer';
 import 'dart:io' if (dart.library.html) 'dart:html' show Directory, File, Platform;
 import 'package:desktop_entry/desktop_entry.dart';
-import 'package:test/test.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:flutter_test/flutter_test.dart';
 import 'package:path/path.dart';
 import 'package:xdg_directories/xdg_directories.dart';
 
@@ -285,7 +286,9 @@ void main() async {
   test('Write To File Correctly', () async {
     const filename = 'desktopContentsToFile.desktop';
 
+    final dir = await getTemporaryDirectory();
     final file = await DesktopFileContents.toFile(
+      dir,
       filename,
       manualDefinitionExample
     );
@@ -307,9 +310,11 @@ void main() async {
   test('Write `example-firefox.desktop` to File Correctly', () async {
     const filename = 'subsetFirefoxToFile.desktop';
 
+    final dir = await getTemporaryDirectory();
     final file = await DesktopFileContents.toFile(
-        filename,
-        firefoxDefinition
+      dir,
+      filename,
+      firefoxDefinition
     );
     final contentsFromFile = DesktopFileContents.fromFile(file);
 

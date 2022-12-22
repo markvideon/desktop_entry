@@ -39,11 +39,12 @@ Future<void> setDefaultForMimeTypes(String applicationPath, List<String> mimeTyp
   Desktop File
 */
 Future<String> installDesktopFileFromMemory({
+  required Directory tempDir,
   required DesktopFileContents contents,
   required String filenameNoExtension,
   required String installationPath,
 }) async {
-  final file = await DesktopFileContents.toFile(filenameNoExtension, contents);
+  final file = await DesktopFileContents.toFile(tempDir, filenameNoExtension, contents);
   return installDesktopFileFromFile(
     file,
     installationDirectoryPath: installationPath,
@@ -137,11 +138,12 @@ Future<void> uninstallDesktopFile(File file) async {
   D-BUS
 */
 Future<String> installDbusServiceFromMemory({
+  required Directory tempDir,
   required String filenameNoExtension,
   required DBusFileContents dBusServiceContents,
   required String installationPath,
 }) async {
-  final file = await DBusFileContents.toFile(filenameNoExtension, dBusServiceContents);
+  final file = await DBusFileContents.toFile(tempDir, filenameNoExtension, dBusServiceContents);
   return installDbusServiceFromFile(
     file,
     installationDirectoryPath: installationPath,

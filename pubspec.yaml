@@ -1,7 +1,7 @@
 name: desktop_entry
-description: A Flutter plugin for managing Desktop Entry files (.desktop) and DBus Service files in
+description: A Dart package for managing Desktop Entry files (.desktop) and DBus Service files in
   Linux environments.
-version: 1.0.0+1
+version: 1.0.0+2
 homepage: https://markvideon.dev
 
 environment:
@@ -9,13 +9,19 @@ environment:
 
 dependencies:
   collection: ^1.16.0
-  flutter_platform_alert: ^0.3.0
   path: ^1.8.2
-  path_provider: ^2.0.10
   xdg_directories: ^0.2.0+2
 
 dev_dependencies:
+  lints: ^2.0.1
+  path_provider: ^2.0.11
   test: ^1.21.4
+
+  flutter:
+    sdk: flutter
+
+  flutter_test:
+    sdk: flutter
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec

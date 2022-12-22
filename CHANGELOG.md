@@ -1,3 +1,10 @@
+## 1.0.1
+* Changed the lint to [package:lints/recommended.yaml].
+* Breaking change in the API - a [Directory] must now be provided to the [install...] functions which 
+ should be a [Directory] that the process has the capability to write to. This was 
+ previously handled by [path_provider] within this package.
+* Added Flutter & Flutter tests as [dev_dependencies].
+
 ## 1.0.0+1 
 * Removed dependency on Flutter. 
 * Generated documentation using dart doc. 

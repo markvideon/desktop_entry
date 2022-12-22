@@ -4,7 +4,6 @@ import 'package:collection/collection.dart';
 import 'package:desktop_entry/src/model/mixin/comments_mixin.dart';
 import 'package:desktop_entry/src/util/build_line.dart';
 import 'package:path/path.dart' show Context, Style;
-import 'package:path_provider/path_provider.dart';
 
 import '../../util/parse_line.dart';
 import '../../util/util.dart';
@@ -47,9 +46,9 @@ class DesktopFileContents with TrailingCommentsMixin, UnrecognisedGroupsMixin {
   static const fieldActions = 'actions';
 
   // To
-  static Future<File> toFile(String name, DesktopFileContents contents) async {
+  ///
+  static Future<File> toFile(Directory tempDir, String name, DesktopFileContents contents) async {
     // Create file
-    final tempDir = await getTemporaryDirectory();
     final pathContext = Context(style: Style.posix);
     final absPath = pathContext.join(tempDir.path, '$name.desktop');
     final file = File(absPath);

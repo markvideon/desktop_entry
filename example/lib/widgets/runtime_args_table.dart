@@ -8,38 +8,37 @@ class RuntimeArgsTable extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-      return Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            'Runtime Arguments',
-            style: Theme.of(context).textTheme.headline6,
-          ),
-          Row(
-            children: [
-              Expanded(
-                child: DataTable(
-                    columns: const [
-                      DataColumn(label: Text('Index')),
-                      DataColumn(label: Text('Value')),
-                    ],
-                    rows: [
-                      if (arguments.isEmpty) const DataRow(
-                          cells: [
-                            DataCell(Text('-')), DataCell(Text('No arguments provided.'))
-                          ]
-                      )
-                      else ...arguments.mapIndexed((index, e) => DataRow(
-                          cells: [
-                            DataCell(Text('$index')), DataCell(Text(e,))
-                          ]
-                      ))
-                    ]
-                ),
-              )
-            ],
-          ),
-        ],
-      );
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Runtime Arguments',
+          style: Theme.of(context).textTheme.headline6,
+        ),
+        Row(
+          children: [
+            Expanded(
+              child: DataTable(columns: const [
+                DataColumn(label: Text('Index')),
+                DataColumn(label: Text('Value')),
+              ], rows: [
+                if (arguments.isEmpty)
+                  const DataRow(cells: [
+                    DataCell(Text('-')),
+                    DataCell(Text('No arguments provided.'))
+                  ])
+                else
+                  ...arguments.mapIndexed((index, e) => DataRow(cells: [
+                        DataCell(Text('$index')),
+                        DataCell(Text(
+                          e,
+                        ))
+                      ]))
+              ]),
+            )
+          ],
+        ),
+      ],
+    );
   }
 }

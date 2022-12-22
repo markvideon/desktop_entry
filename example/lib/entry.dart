@@ -13,12 +13,11 @@ Future<DesktopFileContents> launcher() async {
           type: SpecificationString('Application'),
           name: SpecificationLocaleString('FlutterDesktopEntryExampleLauncher'),
           exec: SpecificationString('${file.path} %u'),
-      mimeType: SpecificationTypeList([SpecificationString('x-scheme-handler/$schemeName')])
-  ),
-  actions: <DesktopAction>[],
-  unrecognisedGroups: <UnrecognisedGroup>[],
-  trailingComments: <String>[]
-  );
+          mimeType: SpecificationTypeList(
+              [SpecificationString('x-scheme-handler/$schemeName')])),
+      actions: <DesktopAction>[],
+      unrecognisedGroups: <UnrecognisedGroup>[],
+      trailingComments: <String>[]);
 }
 
 final entry = DesktopFileContents(
@@ -33,16 +32,12 @@ final entry = DesktopFileContents(
     ),
     actions: <DesktopAction>[],
     unrecognisedGroups: <UnrecognisedGroup>[],
-    trailingComments: <String>[]
-);
+    trailingComments: <String>[]);
 
 final dbus = DBusFileContents(
     dBusServiceDefinition: DBusServiceDefinition(
       name: SpecificationInterfaceName(dbusName),
-      exec: SpecificationFilePath(
-          Uri.file(Platform.executable)
-      ),
+      exec: SpecificationFilePath(Uri.file(Platform.executable)),
     ),
     unrecognisedGroups: [],
-    trailingComments: []
-);
+    trailingComments: []);

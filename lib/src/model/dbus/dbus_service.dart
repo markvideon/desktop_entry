@@ -12,19 +12,18 @@ import '../mixin/unrecognised_entries_mixin.dart';
 import '../specification_types.dart';
 import '../unrecognised/unrecognised_entry.dart';
 
-class DBusServiceDefinition with
-    GroupMixin, UnrecognisedEntriesMixin, TrailingCommentsMixin
-  implements FileWritable {
-  DBusServiceDefinition({
-    DesktopGroup? group,
-    required this.name,
-    required this.exec,
-    this.user,
-    this.systemDService,
-    this.assumedAppArmorLabel,
-    List<UnrecognisedEntry>? unrecognisedEntries,
-    List<String>? trailingComments
-  }) {
+class DBusServiceDefinition
+    with GroupMixin, UnrecognisedEntriesMixin, TrailingCommentsMixin
+    implements FileWritable {
+  DBusServiceDefinition(
+      {DesktopGroup? group,
+      required this.name,
+      required this.exec,
+      this.user,
+      this.systemDService,
+      this.assumedAppArmorLabel,
+      List<UnrecognisedEntry>? unrecognisedEntries,
+      List<String>? trailingComments}) {
     this.group = group ?? DesktopGroup('D-BUS Service');
     this.unrecognisedEntries = unrecognisedEntries ?? [];
     this.trailingComments = trailingComments ?? <String>[];
@@ -59,20 +58,26 @@ class DBusServiceDefinition with
       unrecognisedEntry.writeToFile(file, _);
     }
     for (var comment in trailingComments) {
-      file.writeAsStringSync(buildComment(comment), mode: FileMode.writeOnlyAppend);
+      file.writeAsStringSync(buildComment(comment),
+          mode: FileMode.writeOnlyAppend);
     }
   }
 
   static Map<String, dynamic> toData(DBusServiceDefinition contents) {
-    return <String, dynamic> {
+    return <String, dynamic>{
       GroupMixin.fieldGroup: DesktopGroup.toData(contents.group),
       DesktopSpecificationSharedMixin.fieldName: contents.name,
-      if (contents.exec is SpecificationString) DesktopSpecificationSharedMixin.fieldExec: contents.exec,
+      if (contents.exec is SpecificationString)
+        DesktopSpecificationSharedMixin.fieldExec: contents.exec,
       if (contents.user is SpecificationString) fieldUser: contents.user!,
-      if (contents.systemDService is String) fieldSystemDService: contents.systemDService,
-      if (contents.assumedAppArmorLabel is Uri) fieldAssumedAppArmorLabel: contents.assumedAppArmorLabel,
-      UnrecognisedEntriesMixin.fieldEntries: List.of(contents.unrecognisedEntries, growable: false),
-      TrailingCommentsMixin.fieldTrailingComments: List.of(contents.trailingComments, growable: false)
+      if (contents.systemDService is String)
+        fieldSystemDService: contents.systemDService,
+      if (contents.assumedAppArmorLabel is Uri)
+        fieldAssumedAppArmorLabel: contents.assumedAppArmorLabel,
+      UnrecognisedEntriesMixin.fieldEntries:
+          List.of(contents.unrecognisedEntries, growable: false),
+      TrailingCommentsMixin.fieldTrailingComments:
+          List.of(contents.trailingComments, growable: false)
     };
   }
 
@@ -87,60 +92,61 @@ class DBusServiceDefinition with
     );
   }
 
-  DBusServiceDefinition copyWith({
-    SpecificationInterfaceName? name,
-    SpecificationFilePath? exec,
-    SpecificationString? user,
-    SpecificationInterfaceName? systemDService,
-    SpecificationFilePath? assumedAppArmorLabel,
-    List<UnrecognisedEntry>? unrecognisedEntries,
-    List<String>? trailingComments
-  }) {
+  DBusServiceDefinition copyWith(
+      {SpecificationInterfaceName? name,
+      SpecificationFilePath? exec,
+      SpecificationString? user,
+      SpecificationInterfaceName? systemDService,
+      SpecificationFilePath? assumedAppArmorLabel,
+      List<UnrecognisedEntry>? unrecognisedEntries,
+      List<String>? trailingComments}) {
     return DBusServiceDefinition(
-      name: name ?? this.name,
-      exec: exec ?? this.exec,
-      user: user ?? this.user,
-      systemDService: systemDService ?? this.systemDService,
-      assumedAppArmorLabel: assumedAppArmorLabel ?? this.assumedAppArmorLabel,
-      unrecognisedEntries: unrecognisedEntries ?? List.of(this.unrecognisedEntries),
-      trailingComments: trailingComments ?? List.of(this.trailingComments)
-    );
+        name: name ?? this.name,
+        exec: exec ?? this.exec,
+        user: user ?? this.user,
+        systemDService: systemDService ?? this.systemDService,
+        assumedAppArmorLabel: assumedAppArmorLabel ?? this.assumedAppArmorLabel,
+        unrecognisedEntries:
+            unrecognisedEntries ?? List.of(this.unrecognisedEntries),
+        trailingComments: trailingComments ?? List.of(this.trailingComments));
   }
 
   @override
   bool operator ==(Object other) {
     return other is DBusServiceDefinition &&
-      name == other.name &&
-      group == other.group &&
-      exec == other.exec &&
-      user == other.user &&
-      systemDService == other.systemDService &&
-      assumedAppArmorLabel == other.assumedAppArmorLabel &&
-      const ListEquality().equals(unrecognisedEntries, other.unrecognisedEntries) &&
-      const ListEquality().equals(trailingComments, other.trailingComments);
+        name == other.name &&
+        group == other.group &&
+        exec == other.exec &&
+        user == other.user &&
+        systemDService == other.systemDService &&
+        assumedAppArmorLabel == other.assumedAppArmorLabel &&
+        const ListEquality()
+            .equals(unrecognisedEntries, other.unrecognisedEntries) &&
+        const ListEquality().equals(trailingComments, other.trailingComments);
   }
 
   @override
-  int get hashCode => name.hashCode ^
-    group.hashCode ^
-    exec.hashCode ^
-    user.hashCode ^
-    systemDService.hashCode ^
-    assumedAppArmorLabel.hashCode ^
-    unrecognisedEntries.hashCode ^
-    trailingComments.hashCode;
+  int get hashCode =>
+      name.hashCode ^
+      group.hashCode ^
+      exec.hashCode ^
+      user.hashCode ^
+      systemDService.hashCode ^
+      assumedAppArmorLabel.hashCode ^
+      unrecognisedEntries.hashCode ^
+      trailingComments.hashCode;
 
   @override
   toString() {
     return 'DBusServiceDefinition{ '
-      'group: $group, '
-      '$fieldName: $name, '
-      '$fieldExec: $exec, '
-      '$fieldUser: $user, '
-      '$fieldSystemDService: $systemDService, '
-      '$fieldAssumedAppArmorLabel: $assumedAppArmorLabel, '
-      '${UnrecognisedEntriesMixin.fieldEntries}: $unrecognisedEntries, '
-      '${TrailingCommentsMixin.fieldTrailingComments}: $trailingComments '
-    '}';
+        'group: $group, '
+        '$fieldName: $name, '
+        '$fieldExec: $exec, '
+        '$fieldUser: $user, '
+        '$fieldSystemDService: $systemDService, '
+        '$fieldAssumedAppArmorLabel: $assumedAppArmorLabel, '
+        '${UnrecognisedEntriesMixin.fieldEntries}: $unrecognisedEntries, '
+        '${TrailingCommentsMixin.fieldTrailingComments}: $trailingComments '
+        '}';
   }
 }

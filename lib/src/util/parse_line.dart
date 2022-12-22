@@ -1,7 +1,8 @@
 import '../model/variant_map_entry.dart';
 
 List<String> parseRow(String input, String delimiter) {
-  final nonEscapedMatches = delimiter.allMatches(input)
+  final nonEscapedMatches = delimiter
+      .allMatches(input)
       .where((match) => input[match.start - 1] != r'\');
 
   List<String> parts = [];
@@ -18,7 +19,8 @@ List<String> parseRow(String input, String delimiter) {
     }
 
     for (int i = 1; i < nonEscapedMatches.length; i++) {
-      candidate.write(input.substring(nonEscapedMatches.elementAt(i-1).end, nonEscapedMatches.elementAt(i).start));
+      candidate.write(input.substring(nonEscapedMatches.elementAt(i - 1).end,
+          nonEscapedMatches.elementAt(i).start));
       if (candidate.toString().isNotEmpty) {
         parts.add(candidate.toString());
         candidate.clear();
@@ -30,7 +32,6 @@ List<String> parseRow(String input, String delimiter) {
       parts.add(candidate.toString());
       candidate.clear();
     }
-
   }
 
   return parts;
@@ -51,9 +52,8 @@ VariantMapEntry<dynamic>? parseLine(String line) {
 
   return VariantMapEntry(
       match.group(1)!,
-      possibleMultipleValues.length == 1 ?
-      possibleMultipleValues.first :
-      possibleMultipleValues,
-    modifier: match.group(2)
-  );
+      possibleMultipleValues.length == 1
+          ? possibleMultipleValues.first
+          : possibleMultipleValues,
+      modifier: match.group(2));
 }

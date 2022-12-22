@@ -5,15 +5,13 @@ import 'package:path_provider/path_provider.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 final sampleDbusService = DBusFileContents(
-  dBusServiceDefinition: DBusServiceDefinition(
-    name: SpecificationInterfaceName('dev.markvideon.DesktopEntryExample'),
-    exec: SpecificationFilePath(
-      Uri.file('/home/mark/Documents/dartdesktopentry/example/build/linux/x64/debug/bundle/example')
+    dBusServiceDefinition: DBusServiceDefinition(
+      name: SpecificationInterfaceName('dev.markvideon.DesktopEntryExample'),
+      exec: SpecificationFilePath(Uri.file(
+          '/home/mark/Documents/dartdesktopentry/example/build/linux/x64/debug/bundle/example')),
     ),
-  ),
-  unrecognisedGroups: [],
-  trailingComments: []
-);
+    unrecognisedGroups: [],
+    trailingComments: []);
 
 void main() async {
   test('Parse D-BUS Service File Correctly', () async {

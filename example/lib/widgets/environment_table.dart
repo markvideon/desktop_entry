@@ -17,25 +17,22 @@ class EnvironmentTable extends StatelessWidget {
         Row(
           children: [
             Expanded(
-              child: DataTable(
-                  columns: const [
-                    DataColumn(label: Text('Key')),
-                    DataColumn(label: Text('Value')),
-                  ],
-                  rows: [
-                    if (Platform.environment.isEmpty) const DataRow(
-                        cells: [
-                          DataCell(Text('-')),
-                          DataCell(Text('No arguments provided.'))
-                        ])
-                    else ...Platform.environment.keys.map((e) => DataRow(
-                        cells: [
-                          DataCell(Text(e)),
-                          DataCell(Text('${Platform.environment[e]}', softWrap: true))
-                        ])
-                    )
-                  ]
-              ),
+              child: DataTable(columns: const [
+                DataColumn(label: Text('Key')),
+                DataColumn(label: Text('Value')),
+              ], rows: [
+                if (Platform.environment.isEmpty)
+                  const DataRow(cells: [
+                    DataCell(Text('-')),
+                    DataCell(Text('No arguments provided.'))
+                  ])
+                else
+                  ...Platform.environment.keys.map((e) => DataRow(cells: [
+                        DataCell(Text(e)),
+                        DataCell(
+                            Text('${Platform.environment[e]}', softWrap: true))
+                      ]))
+              ]),
             ),
           ],
         )

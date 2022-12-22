@@ -13,20 +13,15 @@ import '../util/util.dart';
 /*
   MIME
 */
-Future<void> setDefaultForMimeTypes(String applicationPath, List<String> mimeTypes) async {
+Future<void> setDefaultForMimeTypes(
+    String applicationPath, List<String> mimeTypes) async {
   if (mimeTypes.isEmpty) {
     throw Exception('Expected MIME types to be provided.');
   }
 
   final defaultSet = await Process.run(
-    'xdg-mime',
-    <String>[
-      'default',
-      applicationPath,
-      ...mimeTypes
-    ],
-    runInShell: true
-  );
+      'xdg-mime', <String>['default', applicationPath, ...mimeTypes],
+      runInShell: true);
 
   try {
     checkProcessStdErr(defaultSet);
@@ -44,16 +39,16 @@ Future<String> installDesktopFileFromMemory({
   required String filenameNoExtension,
   required String installationPath,
 }) async {
-  final file = await DesktopFileContents.toFile(tempDir, filenameNoExtension, contents);
+  final file =
+      await DesktopFileContents.toFile(tempDir, filenameNoExtension, contents);
   return installDesktopFileFromFile(
     file,
     installationDirectoryPath: installationPath,
   );
 }
 
-Future<String> installDesktopFileFromFile(File file, {
-  required String installationDirectoryPath
-}) async {
+Future<String> installDesktopFileFromFile(File file,
+    {required String installationDirectoryPath}) async {
   if (!file.existsSync()) {
     throw const FileSystemException('File not found');
   }
@@ -69,11 +64,8 @@ Future<String> installDesktopFileFromFile(File file, {
     '--rebuild-mime-info-cache'
   ];
 
-  final fileInstall = await Process.run(
-    processName,
-    arguments,
-    runInShell: true
-  );
+  final fileInstall =
+      await Process.run(processName, arguments, runInShell: true);
 
   try {
     checkProcessStdErr(fileInstall);
@@ -86,12 +78,8 @@ Future<String> installDesktopFileFromFile(File file, {
   }
 
   final updateDatabase = await Process.run(
-    'update-desktop-database',
-    [
-      appliedDestinationDirectoryPath
-    ],
-    runInShell: true
-  );
+      'update-desktop-database', [appliedDestinationDirectoryPath],
+      runInShell: true);
 
   try {
     checkProcessStdErr(updateDatabase);
@@ -104,7 +92,8 @@ Future<String> installDesktopFileFromFile(File file, {
   }
 
   final pathContext = Context(style: Style.posix);
-  final destinationFilePath = pathContext.join(appliedDestinationDirectoryPath, pathContext.basename(file.path));
+  final destinationFilePath = pathContext.join(
+      appliedDestinationDirectoryPath, pathContext.basename(file.path));
   if (File(destinationFilePath).existsSync()) {
     return destinationFilePath;
   } else {
@@ -124,13 +113,8 @@ Future<void> uninstallDesktopFile(File file) async {
   if (file.existsSync()) {
     file.deleteSync();
 
-    await Process.run(
-        'update-desktop-database',
-        [
-          file.parent.absolute.path
-        ],
-        runInShell: true
-    );
+    await Process.run('update-desktop-database', [file.parent.absolute.path],
+        runInShell: true);
   }
 }
 
@@ -143,26 +127,31 @@ Future<String> installDbusServiceFromMemory({
   required DBusFileContents dBusServiceContents,
   required String installationPath,
 }) async {
-  final file = await DBusFileContents.toFile(tempDir, filenameNoExtension, dBusServiceContents);
+  final file = await DBusFileContents.toFile(
+      tempDir, filenameNoExtension, dBusServiceContents);
   return installDbusServiceFromFile(
     file,
     installationDirectoryPath: installationPath,
   );
 }
 
-Future<String> installDbusServiceFromFile(File file, {
+Future<String> installDbusServiceFromFile(
+  File file, {
   required String installationDirectoryPath,
 }) async {
   Directory(installationDirectoryPath).createSync(recursive: true);
   final appliedDestinationDirectoryPath = installationDirectoryPath;
 
   final pathContext = Context(style: Style.posix);
-  final destinationFilePath = pathContext.join(appliedDestinationDirectoryPath, pathContext.basename(file.path));
+  final destinationFilePath = pathContext.join(
+      appliedDestinationDirectoryPath, pathContext.basename(file.path));
 
   final destinationFile = File(destinationFilePath);
   destinationFile.writeAsBytesSync(file.readAsBytesSync());
 
-  if (destinationFile.existsSync() && destinationFile.readAsBytesSync().length == file.readAsBytesSync().length) {
+  if (destinationFile.existsSync() &&
+      destinationFile.readAsBytesSync().length ==
+          file.readAsBytesSync().length) {
     return destinationFilePath;
   } else {
     throw FileSystemException('Installation failed.', destinationFilePath);
@@ -173,7 +162,7 @@ Future<void> uninstallDbusServiceFile(File file) async {
   if (!file.existsSync()) {
     throw const FileSystemException('File did not exist');
   }
-  
+
   if (file.existsSync()) {
     file.deleteSync();
   }

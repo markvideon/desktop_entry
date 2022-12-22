@@ -23,15 +23,18 @@ const _escapeSequences = [
 
 ///  Values of type [SpecificationInterfaceName] must be a path to a file. For D-BUS
 ///  service files this should be a path to an executable.
-class SpecificationInterfaceName extends SpecificationType<String> implements FileWritable {
-  SpecificationInterfaceName(super.value, {
+class SpecificationInterfaceName extends SpecificationType<String>
+    implements FileWritable {
+  SpecificationInterfaceName(
+    super.value, {
     List<String>? comments,
   }) {
     this.comments = comments ?? <String>[];
   }
 
   SpecificationInterfaceName copyWith({String? value, List<String>? comments}) {
-    return SpecificationInterfaceName(value ?? this.value, comments: comments ?? List.of(this.comments));
+    return SpecificationInterfaceName(value ?? this.value,
+        comments: comments ?? List.of(this.comments));
   }
 
   @override
@@ -47,38 +50,43 @@ class SpecificationInterfaceName extends SpecificationType<String> implements Fi
   @override
   writeToFile(File file, String? key) {
     for (var comment in comments) {
-      file.writeAsStringSync(buildComment(comment), mode: FileMode.writeOnlyAppend);
+      file.writeAsStringSync(buildComment(comment),
+          mode: FileMode.writeOnlyAppend);
     }
-    file.writeAsStringSync(buildLine(key!, value), mode: FileMode.writeOnlyAppend);
+    file.writeAsStringSync(buildLine(key!, value),
+        mode: FileMode.writeOnlyAppend);
   }
 
   @override
   toString() {
     return 'SpecificationInterfaceName{ '
-      'value: $value, '
-      'comments: $comments, '
-      '}';
+        'value: $value, '
+        'comments: $comments, '
+        '}';
   }
 }
 
 ///  Values of type [SpecificationFilePath] must be a path to a file. For D-BUS
 ///  service files this should be a path to an executable.
-class SpecificationFilePath extends SpecificationType<Uri> implements FileWritable {
-  SpecificationFilePath(super.value, {
+class SpecificationFilePath extends SpecificationType<Uri>
+    implements FileWritable {
+  SpecificationFilePath(
+    super.value, {
     List<String>? comments,
   }) {
     this.comments = comments ?? <String>[];
   }
 
   SpecificationFilePath copyWith({Uri? value, List<String>? comments}) {
-    return SpecificationFilePath(value ?? this.value, comments: comments ?? List.of(this.comments));
+    return SpecificationFilePath(value ?? this.value,
+        comments: comments ?? List.of(this.comments));
   }
 
   @override
   bool operator ==(Object other) {
     return other is SpecificationFilePath &&
-      value == other.value &&
-      const ListEquality().equals(comments, other.comments);
+        value == other.value &&
+        const ListEquality().equals(comments, other.comments);
   }
 
   @override
@@ -87,24 +95,28 @@ class SpecificationFilePath extends SpecificationType<Uri> implements FileWritab
   @override
   writeToFile(File file, String? key) {
     for (var comment in comments) {
-      file.writeAsStringSync(buildComment(comment), mode: FileMode.writeOnlyAppend);
+      file.writeAsStringSync(buildComment(comment),
+          mode: FileMode.writeOnlyAppend);
     }
-    file.writeAsStringSync(buildLine(key!, value.path), mode: FileMode.writeOnlyAppend);
+    file.writeAsStringSync(buildLine(key!, value.path),
+        mode: FileMode.writeOnlyAppend);
   }
 
   @override
   toString() {
     return 'SpecificationFilePath{ '
-      'value: $value, '
-      'comments: $comments, '
-      '}';
+        'value: $value, '
+        'comments: $comments, '
+        '}';
   }
 }
 
 ///  Values of type [SpecificationString] may contain all ASCII characters except for
 ///  control characters.
-class SpecificationString extends SpecificationType<String> implements FileWritable {
-  SpecificationString(super.value, {
+class SpecificationString extends SpecificationType<String>
+    implements FileWritable {
+  SpecificationString(
+    super.value, {
     List<String>? comments,
   }) {
     for (var escapeCharacter in _escapeSequences) {
@@ -116,14 +128,15 @@ class SpecificationString extends SpecificationType<String> implements FileWrita
   }
 
   SpecificationString copyWith({String? value, List<String>? comments}) {
-    return SpecificationString(value ?? this.value, comments: comments ?? List.of(this.comments));
+    return SpecificationString(value ?? this.value,
+        comments: comments ?? List.of(this.comments));
   }
 
   @override
   bool operator ==(Object other) {
     return other is SpecificationString &&
-      value == other.value &&
-      const ListEquality().equals(comments, other.comments);
+        value == other.value &&
+        const ListEquality().equals(comments, other.comments);
   }
 
   @override
@@ -132,49 +145,49 @@ class SpecificationString extends SpecificationType<String> implements FileWrita
   @override
   writeToFile(File file, String? key) {
     for (var comment in comments) {
-      file.writeAsStringSync(buildComment(comment), mode: FileMode.writeOnlyAppend);
+      file.writeAsStringSync(buildComment(comment),
+          mode: FileMode.writeOnlyAppend);
     }
-    file.writeAsStringSync(buildLine(key!, value), mode: FileMode.writeOnlyAppend);
+    file.writeAsStringSync(buildLine(key!, value),
+        mode: FileMode.writeOnlyAppend);
   }
 
   @override
   toString() {
     return 'SpecificationString{ '
-      'value: $value, '
-      'comments: $comments, '
-    '}';
+        'value: $value, '
+        'comments: $comments, '
+        '}';
   }
 }
 
 ///  Values of type [SpecificationLocaleString] are user displayable, and are encoded in
 ///  UTF-8.
 class SpecificationLocaleString extends SpecificationType<String>
-  with SupportsModifiersMixin<SpecificationLocaleString> implements FileWritable {
-  SpecificationLocaleString(super.value, {
-    List<String>? comments,
-    Map<String, SpecificationLocaleString>? localisedValues}) {
+    with SupportsModifiersMixin<SpecificationLocaleString>
+    implements FileWritable {
+  SpecificationLocaleString(super.value,
+      {List<String>? comments,
+      Map<String, SpecificationLocaleString>? localisedValues}) {
     modifiers = localisedValues ?? <String, SpecificationLocaleString>{};
     comments = comments ?? <String>[];
   }
 
-  SpecificationLocaleString copyWith({
-    String? value,
-    List<String>? comments,
-    Map<String, SpecificationLocaleString>? localisedValues
-  }) {
-    return SpecificationLocaleString(
-      value ?? this.value,
-      localisedValues: localisedValues ?? Map.of(modifiers),
-      comments: comments ?? List.of(this.comments)
-    );
+  SpecificationLocaleString copyWith(
+      {String? value,
+      List<String>? comments,
+      Map<String, SpecificationLocaleString>? localisedValues}) {
+    return SpecificationLocaleString(value ?? this.value,
+        localisedValues: localisedValues ?? Map.of(modifiers),
+        comments: comments ?? List.of(this.comments));
   }
 
   @override
   bool operator ==(Object other) {
     return other is SpecificationLocaleString &&
-      value == other.value &&
-      const ListEquality().equals(comments, other.comments) &&
-      mapEquals(modifiers, other.modifiers);
+        value == other.value &&
+        const ListEquality().equals(comments, other.comments) &&
+        mapEquals(modifiers, other.modifiers);
   }
 
   @override
@@ -183,21 +196,25 @@ class SpecificationLocaleString extends SpecificationType<String>
   @override
   writeToFile(File file, String? key) {
     for (var comment in comments) {
-      file.writeAsStringSync(buildComment(comment), mode: FileMode.writeOnlyAppend);
+      file.writeAsStringSync(buildComment(comment),
+          mode: FileMode.writeOnlyAppend);
     }
-    file.writeAsStringSync(buildLine(key!, value.toString()), mode: FileMode.writeOnlyAppend);
+    file.writeAsStringSync(buildLine(key!, value.toString()),
+        mode: FileMode.writeOnlyAppend);
     modifiers.forEach((localisedKey, localisedValue) {
-      file.writeAsStringSync(buildLine('$key[$localisedKey]', localisedValue.value), mode: FileMode.writeOnlyAppend);
+      file.writeAsStringSync(
+          buildLine('$key[$localisedKey]', localisedValue.value),
+          mode: FileMode.writeOnlyAppend);
     });
   }
 
   @override
   toString() {
     return 'SpecificationLocaleString{ '
-      'value: $value, '
-      'comments: $comments (${comments.length}: ${comments.map((e) => e)}), '
-      'localisedValues: $modifiers (${modifiers.length}: ${modifiers.values.map((e) => e.value)}) '
-    '}';
+        'value: $value, '
+        'comments: $comments (${comments.length}: ${comments.map((e) => e)}), '
+        'localisedValues: $modifiers (${modifiers.length}: ${modifiers.values.map((e) => e.value)}) '
+        '}';
   }
 }
 
@@ -206,22 +223,22 @@ class SpecificationLocaleString extends SpecificationType<String>
 ///  the algorithm described in the Icon Theme Specification.
 ///  Such values are not user-displayable, and are encoded in UTF-8.
 class SpecificationIconString extends SpecificationType<String>
-    with SupportsModifiersMixin<SpecificationIconString> implements FileWritable {
-  SpecificationIconString(super.value, {Map<String, SpecificationIconString>? localisedValues, List<String>? comments}) {
+    with SupportsModifiersMixin<SpecificationIconString>
+    implements FileWritable {
+  SpecificationIconString(super.value,
+      {Map<String, SpecificationIconString>? localisedValues,
+      List<String>? comments}) {
     modifiers = localisedValues ?? <String, SpecificationIconString>{};
     comments = comments ?? <String>[];
   }
 
-  SpecificationIconString copyWith({
-    String? value,
-    Map<String, SpecificationIconString>? localisedValues,
-    List<String>? comments
-  }) {
-    return SpecificationIconString(
-      value ?? this.value,
-      localisedValues: localisedValues ?? Map.of(modifiers),
-      comments: comments ?? List.of(this.comments)
-    );
+  SpecificationIconString copyWith(
+      {String? value,
+      Map<String, SpecificationIconString>? localisedValues,
+      List<String>? comments}) {
+    return SpecificationIconString(value ?? this.value,
+        localisedValues: localisedValues ?? Map.of(modifiers),
+        comments: comments ?? List.of(this.comments));
   }
 
   @override
@@ -233,52 +250,49 @@ class SpecificationIconString extends SpecificationType<String>
   }
 
   @override
-  int get hashCode => value.hashCode ^
-  modifiers.hashCode ^
-    comments.hashCode;
+  int get hashCode => value.hashCode ^ modifiers.hashCode ^ comments.hashCode;
 
   @override
   writeToFile(File file, String? key) {
     for (var comment in comments) {
-      file.writeAsStringSync(buildComment(comment), mode: FileMode.writeOnlyAppend);
+      file.writeAsStringSync(buildComment(comment),
+          mode: FileMode.writeOnlyAppend);
     }
-    file.writeAsStringSync(buildLine(key!, value.toString()), mode: FileMode.writeOnlyAppend);
+    file.writeAsStringSync(buildLine(key!, value.toString()),
+        mode: FileMode.writeOnlyAppend);
     modifiers.forEach((localisedKey, localisedValue) {
-      file.writeAsStringSync(buildLine('$key[$localisedKey]', value.toString()), mode: FileMode.writeOnlyAppend);
+      file.writeAsStringSync(buildLine('$key[$localisedKey]', value.toString()),
+          mode: FileMode.writeOnlyAppend);
     });
   }
 
   @override
   toString() {
     return 'SpecificationIconString{ '
-      'value: $value, '
-      'comments: $comments, '
-      'localisedValues: $modifiers '
-    '}';
+        'value: $value, '
+        'comments: $comments, '
+        'localisedValues: $modifiers '
+        '}';
   }
 }
 
 /// Values of type boolean must either be the string true or false.
-class SpecificationBoolean extends SpecificationType<bool> implements FileWritable {
+class SpecificationBoolean extends SpecificationType<bool>
+    implements FileWritable {
   SpecificationBoolean(super.value, {List<String>? comments}) {
     this.comments = comments ?? <String>[];
   }
 
-  SpecificationBoolean copyWith({
-    bool? value,
-    List<String>? comments
-  }) {
-    return SpecificationBoolean(
-      value ?? this.value,
-      comments: comments ?? this.comments
-    );
+  SpecificationBoolean copyWith({bool? value, List<String>? comments}) {
+    return SpecificationBoolean(value ?? this.value,
+        comments: comments ?? this.comments);
   }
 
   @override
   bool operator ==(Object other) {
     return other is SpecificationBoolean &&
-      value == other.value &&
-      const ListEquality().equals(comments, other.comments);
+        value == other.value &&
+        const ListEquality().equals(comments, other.comments);
   }
 
   @override
@@ -287,43 +301,41 @@ class SpecificationBoolean extends SpecificationType<bool> implements FileWritab
   @override
   writeToFile(File file, String? key) {
     for (var comment in comments) {
-      file.writeAsStringSync(buildComment(comment), mode: FileMode.writeOnlyAppend);
+      file.writeAsStringSync(buildComment(comment),
+          mode: FileMode.writeOnlyAppend);
     }
-    file.writeAsStringSync(buildLine(key!, value.toString()), mode: FileMode.writeOnlyAppend);
+    file.writeAsStringSync(buildLine(key!, value.toString()),
+        mode: FileMode.writeOnlyAppend);
   }
 
   @override
   toString() {
     return 'SpecificationBoolean{ '
-      'value: $value, '
-      'comments: $comments, '
-    '}';
+        'value: $value, '
+        'comments: $comments, '
+        '}';
   }
 }
 
 ///  Values of type [SpecificationNumeric] must be a valid floating point number as recognized
 ///  by the %f specifier for scanf in the C locale.
 ///  Not used according to the specification table.
-class SpecificationNumeric extends SpecificationType<double> implements FileWritable {
+class SpecificationNumeric extends SpecificationType<double>
+    implements FileWritable {
   SpecificationNumeric(super.value, {List<String>? comments}) {
     this.comments = comments ?? <String>[];
   }
 
-  SpecificationNumeric copyWith({
-    double? value,
-    List<String>? comments
-  }) {
-    return SpecificationNumeric(
-      value ?? this.value,
-      comments: comments ?? this.comments
-    );
+  SpecificationNumeric copyWith({double? value, List<String>? comments}) {
+    return SpecificationNumeric(value ?? this.value,
+        comments: comments ?? this.comments);
   }
 
   @override
   bool operator ==(Object other) {
     return other is SpecificationNumeric &&
         value == other.value &&
-      const ListEquality().equals(comments, other.comments);
+        const ListEquality().equals(comments, other.comments);
   }
 
   @override
@@ -334,15 +346,16 @@ class SpecificationNumeric extends SpecificationType<double> implements FileWrit
     for (var comment in comments) {
       file.writeAsStringSync(buildComment(comment));
     }
-    file.writeAsStringSync(buildLine(key!, value.toString()), mode: FileMode.writeOnlyAppend);
+    file.writeAsStringSync(buildLine(key!, value.toString()),
+        mode: FileMode.writeOnlyAppend);
   }
 
   @override
   toString() {
     return 'SpecificationNumeric{ '
-      'value: $value, '
-      'comments: $comments, '
-    '}';
+        'value: $value, '
+        'comments: $comments, '
+        '}';
   }
 }
 
@@ -357,8 +370,10 @@ abstract class SpecificationType<T> with CommentsMixin {
   }
 }
 
-class SpecificationTypeList<T extends SpecificationType> extends ListBase<T> with CommentsMixin, FileWritable {
-  SpecificationTypeList(List<T> primitiveList, {
+class SpecificationTypeList<T extends SpecificationType> extends ListBase<T>
+    with CommentsMixin, FileWritable {
+  SpecificationTypeList(
+    List<T> primitiveList, {
     List<String>? comments,
   }) {
     _internalList = List.of(primitiveList);
@@ -397,88 +412,89 @@ class SpecificationTypeList<T extends SpecificationType> extends ListBase<T> wit
   writeToFile(File file, String? key) {
     // Write the comments associated with the [KeywordList] first.
     for (var comment in comments) {
-      file.writeAsStringSync(buildComment(comment), mode: FileMode.writeOnlyAppend);
+      file.writeAsStringSync(buildComment(comment),
+          mode: FileMode.writeOnlyAppend);
     }
 
     // Write the comments associated with the primary elements (if any)
     forEach((value) {
       for (var valueComment in value.comments) {
         if (valueComment.trim().isNotEmpty) {
-          file.writeAsStringSync(buildComment(valueComment), mode: FileMode.writeOnlyAppend);
+          file.writeAsStringSync(buildComment(valueComment),
+              mode: FileMode.writeOnlyAppend);
         }
       }
     });
 
     // Write the primary elements
-    final primaryValues = map((keyword) => keyword.value.toString()).toList(growable: false);
-    file.writeAsStringSync(buildListLine(key!, primaryValues), mode: FileMode.writeOnlyAppend);
+    final primaryValues =
+        map((keyword) => keyword.value.toString()).toList(growable: false);
+    file.writeAsStringSync(buildListLine(key!, primaryValues),
+        mode: FileMode.writeOnlyAppend);
   }
 
   @override
   bool operator ==(Object other) {
     return other is SpecificationTypeList<T> &&
-      const ListEquality().equals(this, other) &&
-      const ListEquality().equals(_internalList, other._internalList) &&
-      const ListEquality().equals(comments, other.comments);
+        const ListEquality().equals(this, other) &&
+        const ListEquality().equals(_internalList, other._internalList) &&
+        const ListEquality().equals(comments, other.comments);
   }
 
   @override
   int get hashCode =>
-    super.hashCode ^
-    _internalList.hashCode ^
-    comments.hashCode;
+      super.hashCode ^ _internalList.hashCode ^ comments.hashCode;
 
   @override
   toString() {
     return 'SpecificationTypeList{ '
-      'externalList: ${map((element) => element.toString())}, '
-      'internalList: ${_internalList.map((e) => e.toString())}, '
-      'comments: $comments, '
-    '}';
+        'externalList: ${map((element) => element.toString())}, '
+        'internalList: ${_internalList.map((e) => e.toString())}, '
+        'comments: $comments, '
+        '}';
   }
 }
 
 class LocalisableSpecificationTypeList<T extends SpecificationType>
     extends SpecificationTypeList<T> with SupportsModifiersMixin<List<T>> {
-  LocalisableSpecificationTypeList(super.primitiveList, {
-    super.comments,
-    Map<String, List<T>>? localisedValues
-  }) {
+  LocalisableSpecificationTypeList(super.primitiveList,
+      {super.comments, Map<String, List<T>>? localisedValues}) {
     modifiers = localisedValues ?? {};
   }
 
   @override
-  LocalisableSpecificationTypeList<T> copyWith({
-    List<T>? primitiveList,
-    List<String>? comments,
-    Map<String, List<T>>? localisedValues
-  }) {
-    return LocalisableSpecificationTypeList<T>(
-      primitiveList ?? List.of(this),
-      comments: comments ?? List.of(this.comments),
-      localisedValues: localisedValues ?? Map.of(modifiers)
-    );
+  LocalisableSpecificationTypeList<T> copyWith(
+      {List<T>? primitiveList,
+      List<String>? comments,
+      Map<String, List<T>>? localisedValues}) {
+    return LocalisableSpecificationTypeList<T>(primitiveList ?? List.of(this),
+        comments: comments ?? List.of(this.comments),
+        localisedValues: localisedValues ?? Map.of(modifiers));
   }
 
   @override
   writeToFile(File file, String? key) {
     // Write the comments associated with the [KeywordList] first.
     for (var comment in comments) {
-      file.writeAsStringSync(buildComment(comment), mode: FileMode.writeOnlyAppend);
+      file.writeAsStringSync(buildComment(comment),
+          mode: FileMode.writeOnlyAppend);
     }
 
     // Write the comments associated with the primary elements (if any)
     forEach((value) {
       for (var valueComment in value.comments) {
         if (valueComment.trim().isNotEmpty) {
-          file.writeAsStringSync(buildComment(valueComment), mode: FileMode.writeOnlyAppend);
+          file.writeAsStringSync(buildComment(valueComment),
+              mode: FileMode.writeOnlyAppend);
         }
       }
     });
 
     // Write the primary elements
-    final primaryValues = map((keyword) => keyword.value.toString()).toList(growable: false);
-    file.writeAsStringSync(buildListLine(key!, primaryValues), mode: FileMode.writeOnlyAppend);
+    final primaryValues =
+        map((keyword) => keyword.value.toString()).toList(growable: false);
+    file.writeAsStringSync(buildListLine(key!, primaryValues),
+        mode: FileMode.writeOnlyAppend);
 
     // Write the localised elements, with their comments above
     modifiers.forEach((languageModifier, languageSpecificListOfKeywords) {
@@ -486,13 +502,18 @@ class LocalisableSpecificationTypeList<T extends SpecificationType>
       for (var languageSpecificKeyword in languageSpecificListOfKeywords) {
         for (var keywordComment in languageSpecificKeyword.comments) {
           if (keywordComment.trim().isNotEmpty) {
-            file.writeAsStringSync(buildComment(keywordComment), mode: FileMode.writeOnlyAppend);
+            file.writeAsStringSync(buildComment(keywordComment),
+                mode: FileMode.writeOnlyAppend);
           }
         }
       }
 
-      final languageSpecificValues = languageSpecificListOfKeywords.map((e) => e.value.toString()).toList(growable: false);
-      file.writeAsStringSync(buildListLine('$key[$languageModifier]', languageSpecificValues), mode: FileMode.writeOnlyAppend);
+      final languageSpecificValues = languageSpecificListOfKeywords
+          .map((e) => e.value.toString())
+          .toList(growable: false);
+      file.writeAsStringSync(
+          buildListLine('$key[$languageModifier]', languageSpecificValues),
+          mode: FileMode.writeOnlyAppend);
     });
   }
 
@@ -504,9 +525,8 @@ class LocalisableSpecificationTypeList<T extends SpecificationType>
       mapEquals(modifiers, other.modifiers);
 
   @override
-  int get hashCode => _internalList.hashCode ^
-    comments.hashCode ^
-  modifiers.hashCode;
+  int get hashCode =>
+      _internalList.hashCode ^ comments.hashCode ^ modifiers.hashCode;
 
   @override
   toString() {
@@ -514,16 +534,14 @@ class LocalisableSpecificationTypeList<T extends SpecificationType>
         'internalList: ${_internalList.map((e) => e.toString())}, '
         'localisedValues: ${modifiers.toString()}, '
         'comments: $comments, '
-    '}';
+        '}';
   }
 }
 
 // Can't extend MapEntry, as per this PR:
 // https://github.com/dart-lang/sdk/issues/25874
 class SpecificationMapEntry<K, V> implements MapEntry<K, V> {
-  SpecificationMapEntry(this._key, this._value, {
-    this.modifier
-  });
+  SpecificationMapEntry(this._key, this._value, {this.modifier});
 
   final String? modifier;
   late final K _key;
@@ -538,9 +556,9 @@ class SpecificationMapEntry<K, V> implements MapEntry<K, V> {
   @override
   bool operator ==(Object other) {
     return other is SpecificationMapEntry<K, V> &&
-      key == other.key &&
-      value == other.value &&
-      modifier == other.modifier;
+        key == other.key &&
+        value == other.value &&
+        modifier == other.modifier;
   }
 
   @override

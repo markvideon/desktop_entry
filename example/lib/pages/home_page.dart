@@ -5,7 +5,8 @@ import 'package:example/widgets/runtime_args_table.dart';
 import 'package:flutter/material.dart';
 
 class MyHomePage extends StatefulWidget {
-  const MyHomePage({this.arguments = const <String>[], super.key, required this.title});
+  const MyHomePage(
+      {this.arguments = const <String>[], super.key, required this.title});
 
   final String title;
   final List<String> arguments;
@@ -29,22 +30,22 @@ class _MyHomePageState extends State<MyHomePage> {
           Expanded(
             child: SingleChildScrollView(
                 child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 50.0),
-                  child: Column(
-                    children: [
-                      const SizedBox(height: 30),
-                      RuntimeArgsTable(arguments: widget.arguments),
-                      const SizedBox(height: 30),
-                      const DBusTable(),
-                      const SizedBox(height: 30),
-                      const EnvironmentTable(),
-                      const SizedBox(height: 30),
-                      const InstallationTable(),
-                      const SizedBox(height: 124),
-                    ],
-                  ),
-                )
-            ),
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 20.0, vertical: 50.0),
+              child: Column(
+                children: [
+                  const SizedBox(height: 30),
+                  RuntimeArgsTable(arguments: widget.arguments),
+                  const SizedBox(height: 30),
+                  const DBusTable(),
+                  const SizedBox(height: 30),
+                  const EnvironmentTable(),
+                  const SizedBox(height: 30),
+                  const InstallationTable(),
+                  const SizedBox(height: 124),
+                ],
+              ),
+            )),
           ),
         ],
       ),

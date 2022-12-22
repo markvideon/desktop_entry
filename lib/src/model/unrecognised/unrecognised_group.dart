@@ -8,11 +8,11 @@ import '../mixin/group_mixin.dart';
 import '../mixin/unrecognised_entries_mixin.dart';
 import 'unrecognised_entry.dart';
 
-class UnrecognisedGroup with GroupMixin, UnrecognisedEntriesMixin implements FileWritable {
-  UnrecognisedGroup({
-    required DesktopGroup group,
-    required List<UnrecognisedEntry> entries
-  }) {
+class UnrecognisedGroup
+    with GroupMixin, UnrecognisedEntriesMixin
+    implements FileWritable {
+  UnrecognisedGroup(
+      {required DesktopGroup group, required List<UnrecognisedEntry> entries}) {
     this.group = group;
     unrecognisedEntries = entries;
   }
@@ -39,15 +39,17 @@ class UnrecognisedGroup with GroupMixin, UnrecognisedEntriesMixin implements Fil
   factory UnrecognisedGroup.fromMap(Map<String, dynamic> map) {
     return UnrecognisedGroup(
       group: map[GroupMixin.fieldGroup],
-      entries: map[UnrecognisedEntriesMixin.fieldEntries] as List<UnrecognisedEntry>,
+      entries:
+          map[UnrecognisedEntriesMixin.fieldEntries] as List<UnrecognisedEntry>,
     );
   }
 
   @override
   operator ==(Object other) {
     return other is UnrecognisedGroup &&
-      group == other.group &&
-      const ListEquality().equals(unrecognisedEntries, other.unrecognisedEntries);
+        group == other.group &&
+        const ListEquality()
+            .equals(unrecognisedEntries, other.unrecognisedEntries);
   }
 
   @override
@@ -56,8 +58,8 @@ class UnrecognisedGroup with GroupMixin, UnrecognisedEntriesMixin implements Fil
   @override
   toString() {
     return 'UnrecognisedGroup{ '
-      '${GroupMixin.fieldGroup}: $group, '
-      '${UnrecognisedEntriesMixin.fieldEntries}: $unrecognisedEntries '
-    '}';
+        '${GroupMixin.fieldGroup}: $group, '
+        '${UnrecognisedEntriesMixin.fieldEntries}: $unrecognisedEntries '
+        '}';
   }
 }

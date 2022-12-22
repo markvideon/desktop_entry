@@ -31,7 +31,8 @@ class DBusFileContents with TrailingCommentsMixin, UnrecognisedGroupsMixin {
   DBusServiceDefinition dBusServiceDefinition;
 
   ///
-  static Future<File> toFile(Directory tempDir, String name, DBusFileContents contents) async {
+  static Future<File> toFile(
+      Directory tempDir, String name, DBusFileContents contents) async {
     // Create file
     final pathContext = Context(style: Style.posix);
     final absPath = pathContext.join(tempDir.path, '$name.service');
@@ -51,7 +52,8 @@ class DBusFileContents with TrailingCommentsMixin, UnrecognisedGroupsMixin {
     }
 
     for (var element in contents.trailingComments) {
-      file.writeAsStringSync(buildComment(element), mode: FileMode.writeOnlyAppend);
+      file.writeAsStringSync(buildComment(element),
+          mode: FileMode.writeOnlyAppend);
     }
 
     return file;
@@ -60,10 +62,17 @@ class DBusFileContents with TrailingCommentsMixin, UnrecognisedGroupsMixin {
   // From
   factory DBusFileContents.fromMap(Map<String, dynamic> map) {
     return DBusFileContents(
-      dBusServiceDefinition: DBusServiceDefinition.fromMap(map[fieldDBusServiceDefinition]),
-      unrecognisedGroups: (map[UnrecognisedGroupsMixin.fieldUnrecognisedGroups] as Iterable<Map<String, dynamic>>).map((e) => UnrecognisedGroup.fromMap(e)).toList(growable: false),
-      trailingComments: map[TrailingCommentsMixin.fieldTrailingComments] != null ? List.of(map[TrailingCommentsMixin.fieldTrailingComments]) : <String>[]
-    );
+        dBusServiceDefinition:
+            DBusServiceDefinition.fromMap(map[fieldDBusServiceDefinition]),
+        unrecognisedGroups:
+            (map[UnrecognisedGroupsMixin.fieldUnrecognisedGroups]
+                    as Iterable<Map<String, dynamic>>)
+                .map((e) => UnrecognisedGroup.fromMap(e))
+                .toList(growable: false),
+        trailingComments:
+            map[TrailingCommentsMixin.fieldTrailingComments] != null
+                ? List.of(map[TrailingCommentsMixin.fieldTrailingComments])
+                : <String>[]);
   }
 
   factory DBusFileContents.fromFile(File file) {
@@ -76,7 +85,7 @@ class DBusFileContents with TrailingCommentsMixin, UnrecognisedGroupsMixin {
       throw Exception('File appears to be empty.');
     }
 
-    final map = <String, dynamic> {
+    final map = <String, dynamic>{
       DBusFileContents.fieldDBusServiceDefinition: <String, dynamic>{
         UnrecognisedEntriesMixin.fieldEntries: <UnrecognisedEntry>[]
       },
@@ -85,14 +94,17 @@ class DBusFileContents with TrailingCommentsMixin, UnrecognisedGroupsMixin {
 
     int activeUnrecognisedGroupIdx = -1;
 
-    DesktopSpecificationParseMode parseMode = DesktopSpecificationParseMode.unrecognisedGroup;
+    DesktopSpecificationParseMode parseMode =
+        DesktopSpecificationParseMode.unrecognisedGroup;
 
     List<String> relevantComments = <String>[];
 
     for (var line in lines) {
       final effectiveLine = line.trim();
-      final isCommentLine = effectiveLine.startsWith('#') || effectiveLine.isEmpty;
-      final isGroupLine = (effectiveLine.startsWith('[') && effectiveLine.endsWith(']'));
+      final isCommentLine =
+          effectiveLine.startsWith('#') || effectiveLine.isEmpty;
+      final isGroupLine =
+          (effectiveLine.startsWith('[') && effectiveLine.endsWith(']'));
 
       if (isCommentLine) {
         relevantComments.add(line);
@@ -112,12 +124,17 @@ class DBusFileContents with TrailingCommentsMixin, UnrecognisedGroupsMixin {
           // Unrecognised Group
           else {
             parseMode = DesktopSpecificationParseMode.unrecognisedGroup;
-            final unrecognisedGroupName = DesktopGroup(extractedGroupName.first, comments: relevantComments);
+            final unrecognisedGroupName = DesktopGroup(extractedGroupName.first,
+                comments: relevantComments);
             final unrecognisedGroupMap = <String, dynamic>{
               GroupMixin.fieldGroup: unrecognisedGroupName,
               UnrecognisedEntriesMixin.fieldEntries: <UnrecognisedEntry>[]
             };
-            map[UnrecognisedGroupsMixin.fieldUnrecognisedGroups] = <Map<String, dynamic>>[...map[UnrecognisedGroupsMixin.fieldUnrecognisedGroups], unrecognisedGroupMap];
+            map[UnrecognisedGroupsMixin.fieldUnrecognisedGroups] =
+                <Map<String, dynamic>>[
+              ...map[UnrecognisedGroupsMixin.fieldUnrecognisedGroups],
+              unrecognisedGroupMap
+            ];
             activeUnrecognisedGroupIdx++;
           }
 
@@ -136,32 +153,50 @@ class DBusFileContents with TrailingCommentsMixin, UnrecognisedGroupsMixin {
               log('Key: ${possibleMapEntry.key}');
               switch (possibleMapEntry.key) {
                 case DBusServiceDefinition.fieldName:
-                  map[DBusFileContents.fieldDBusServiceDefinition][DBusServiceDefinition.fieldName] = SpecificationInterfaceName(possibleMapEntry.value, comments: relevantComments);
+                  map[DBusFileContents.fieldDBusServiceDefinition]
+                          [DBusServiceDefinition.fieldName] =
+                      SpecificationInterfaceName(possibleMapEntry.value,
+                          comments: relevantComments);
                   relevantComments = <String>[];
                   continue;
                 case DBusServiceDefinition.fieldExec:
-                  map[DBusFileContents.fieldDBusServiceDefinition][DBusServiceDefinition.fieldExec] = SpecificationFilePath(Uri.file(possibleMapEntry.value), comments: relevantComments);
+                  map[DBusFileContents.fieldDBusServiceDefinition]
+                          [DBusServiceDefinition.fieldExec] =
+                      SpecificationFilePath(Uri.file(possibleMapEntry.value),
+                          comments: relevantComments);
                   relevantComments = <String>[];
                   continue;
                 case DBusServiceDefinition.fieldUser:
-                  map[DBusFileContents.fieldDBusServiceDefinition][DBusServiceDefinition.fieldUser] = SpecificationString(possibleMapEntry.value, comments: relevantComments);
+                  map[DBusFileContents.fieldDBusServiceDefinition]
+                          [DBusServiceDefinition.fieldUser] =
+                      SpecificationString(possibleMapEntry.value,
+                          comments: relevantComments);
                   relevantComments = <String>[];
                   continue;
                 case DBusServiceDefinition.fieldSystemDService:
-                  map[DBusFileContents.fieldDBusServiceDefinition][DBusServiceDefinition.fieldSystemDService] = SpecificationInterfaceName(possibleMapEntry.value, comments: relevantComments);
+                  map[DBusFileContents.fieldDBusServiceDefinition]
+                          [DBusServiceDefinition.fieldSystemDService] =
+                      SpecificationInterfaceName(possibleMapEntry.value,
+                          comments: relevantComments);
                   relevantComments = <String>[];
                   continue;
                 case DBusServiceDefinition.fieldAssumedAppArmorLabel:
-                  map[DBusFileContents.fieldDBusServiceDefinition][DBusServiceDefinition.fieldAssumedAppArmorLabel] = SpecificationFilePath(possibleMapEntry.value, comments: relevantComments);
+                  map[DBusFileContents.fieldDBusServiceDefinition]
+                          [DBusServiceDefinition.fieldAssumedAppArmorLabel] =
+                      SpecificationFilePath(possibleMapEntry.value,
+                          comments: relevantComments);
                   relevantComments = <String>[];
                   continue;
                 default:
                   final unrecognisedEntry = UnrecognisedEntry(
-                    key: possibleMapEntry.key,
-                    values: possibleMapEntry.value is List ? possibleMapEntry.value : [possibleMapEntry.value],
-                    comments: relevantComments
-                  );
-                  (map[DBusFileContents.fieldDBusServiceDefinition][UnrecognisedEntriesMixin.fieldEntries] as List).add(unrecognisedEntry);
+                      key: possibleMapEntry.key,
+                      values: possibleMapEntry.value is List
+                          ? possibleMapEntry.value
+                          : [possibleMapEntry.value],
+                      comments: relevantComments);
+                  (map[DBusFileContents.fieldDBusServiceDefinition]
+                          [UnrecognisedEntriesMixin.fieldEntries] as List)
+                      .add(unrecognisedEntry);
                   relevantComments = <String>[];
                   continue;
               }
@@ -169,10 +204,15 @@ class DBusFileContents with TrailingCommentsMixin, UnrecognisedGroupsMixin {
             case DesktopSpecificationParseMode.unrecognisedGroup:
               final unrecognisedEntry = UnrecognisedEntry(
                   key: possibleMapEntry.key,
-                  values: possibleMapEntry.value is List<String> ? possibleMapEntry.value : <String>[possibleMapEntry.value],
-                  comments: relevantComments
-              );
-              ((map[UnrecognisedGroupsMixin.fieldUnrecognisedGroups] as List).elementAt(activeUnrecognisedGroupIdx)[UnrecognisedEntriesMixin.fieldEntries] as List<UnrecognisedEntry>).add(unrecognisedEntry);
+                  values: possibleMapEntry.value is List<String>
+                      ? possibleMapEntry.value
+                      : <String>[possibleMapEntry.value],
+                  comments: relevantComments);
+              ((map[UnrecognisedGroupsMixin.fieldUnrecognisedGroups] as List)
+                              .elementAt(activeUnrecognisedGroupIdx)[
+                          UnrecognisedEntriesMixin.fieldEntries]
+                      as List<UnrecognisedEntry>)
+                  .add(unrecognisedEntry);
               relevantComments = <String>[];
               continue;
             default:
@@ -190,22 +230,24 @@ class DBusFileContents with TrailingCommentsMixin, UnrecognisedGroupsMixin {
   @override
   toString() {
     return 'DBusContents{ '
-      '$fieldDBusServiceDefinition: $dBusServiceDefinition, '
-      '${UnrecognisedGroupsMixin.fieldUnrecognisedGroups}: $unrecognisedGroups, '
-      '${TrailingCommentsMixin.fieldTrailingComments}: $trailingComments'
-    ' }';
+        '$fieldDBusServiceDefinition: $dBusServiceDefinition, '
+        '${UnrecognisedGroupsMixin.fieldUnrecognisedGroups}: $unrecognisedGroups, '
+        '${TrailingCommentsMixin.fieldTrailingComments}: $trailingComments'
+        ' }';
   }
 
   @override
   bool operator ==(Object other) {
     return other is DBusFileContents &&
-      dBusServiceDefinition == other.dBusServiceDefinition &&
-      const ListEquality().equals(unrecognisedGroups, other.unrecognisedGroups) &&
-      const ListEquality().equals(trailingComments, other.trailingComments);
+        dBusServiceDefinition == other.dBusServiceDefinition &&
+        const ListEquality()
+            .equals(unrecognisedGroups, other.unrecognisedGroups) &&
+        const ListEquality().equals(trailingComments, other.trailingComments);
   }
 
   @override
-  int get hashCode => dBusServiceDefinition.hashCode ^
-    unrecognisedGroups.hashCode ^
-    trailingComments.hashCode;
+  int get hashCode =>
+      dBusServiceDefinition.hashCode ^
+      unrecognisedGroups.hashCode ^
+      trailingComments.hashCode;
 }

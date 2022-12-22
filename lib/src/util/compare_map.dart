@@ -2,8 +2,12 @@ import 'dart:core';
 
 class MapComparison {
   MapComparison(Map<String, dynamic> mapA, Map<String, dynamic> mapB) {
-    _keysExclusiveToA = mapA.keys.where((key) => !mapB.containsKey(key)).toList(growable: false);
-    _keysExclusiveToA = mapB.keys.where((key) => !mapA.containsKey(key)).toList(growable: false);
+    _keysExclusiveToA = mapA.keys
+        .where((key) => !mapB.containsKey(key))
+        .toList(growable: false);
+    _keysExclusiveToA = mapB.keys
+        .where((key) => !mapA.containsKey(key))
+        .toList(growable: false);
 
     final differentValues = <String>[];
     mapA.forEach((key, value) {
@@ -25,9 +29,9 @@ class MapComparison {
   @override
   toString() {
     return 'MapComparison{ '
-      'keysExclusiveToA: $_keysExclusiveToA, '
-      'keysExclusiveToB: $_keysExclusiveToB, '
-      'differentValues: $_differentValues '
-    '}';
+        'keysExclusiveToA: $_keysExclusiveToA, '
+        'keysExclusiveToB: $_keysExclusiveToB, '
+        'differentValues: $_differentValues '
+        '}';
   }
 }

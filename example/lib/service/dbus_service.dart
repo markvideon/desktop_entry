@@ -48,21 +48,20 @@ class DbusService {
   }
 
   registerObject() async {
-    myObject = DevMarkvideonDesktopEntryExampleObject(callback: (data, {
-      List<String>? uris,
-      String? action_name,
-      List<String>? parameter,
-      FreeDesktopResponse? response
-    }) {
-        latestPlatformData = data;
-        latestUris = uris;
-        latestActionName = action_name;
-        latestActionParams = parameter;
-        latestResponse = response ?? FreeDesktopResponse.none;
-        lastResponse = DateTime.now();
-        callback?.call();
+    myObject = DevMarkvideonDesktopEntryExampleObject(callback: (data,
+        {List<String>? uris,
+        String? action_name,
+        List<String>? parameter,
+        FreeDesktopResponse? response}) {
+      latestPlatformData = data;
+      latestUris = uris;
+      latestActionName = action_name;
+      latestActionParams = parameter;
+      latestResponse = response ?? FreeDesktopResponse.none;
+      lastResponse = DateTime.now();
+      callback?.call();
     });
-    
+
     await client.registerObject(myObject!);
 
     hasRegisteredObject = true;

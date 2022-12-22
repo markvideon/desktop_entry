@@ -10,8 +10,9 @@ import '../mixin/unrecognised_entries_mixin.dart';
 import '../specification_types.dart';
 import '../unrecognised/unrecognised_entry.dart';
 
-class DesktopAction with DesktopSpecificationSharedMixin, GroupMixin,
-    UnrecognisedEntriesMixin implements FileWritable {
+class DesktopAction
+    with DesktopSpecificationSharedMixin, GroupMixin, UnrecognisedEntriesMixin
+    implements FileWritable {
   DesktopAction({
     required DesktopGroup group,
     required SpecificationLocaleString name,
@@ -27,16 +28,20 @@ class DesktopAction with DesktopSpecificationSharedMixin, GroupMixin,
   }
 
   static const desktopActionPrefix = 'Desktop Action';
-  static final RegExp groupRegExp = RegExp(r'(' + desktopActionPrefix + r' [\w\s\d]+)');
+  static final RegExp groupRegExp =
+      RegExp(r'(' + desktopActionPrefix + r' [\w\s\d]+)');
 
   // To
   static Map<String, dynamic> toData(DesktopAction action) {
-    return <String, dynamic> {
+    return <String, dynamic>{
       GroupMixin.fieldGroup: DesktopGroup.toData(action.group),
       DesktopSpecificationSharedMixin.fieldName: action.name.copyWith(),
-      if (action.icon is SpecificationIconString) DesktopSpecificationSharedMixin.fieldIcon: action.icon!.copyWith(),
-      if (action.exec is SpecificationString) DesktopSpecificationSharedMixin.fieldExec: action.exec!.copyWith(),
-      UnrecognisedEntriesMixin.fieldEntries: List.of(action.unrecognisedEntries, growable: false),
+      if (action.icon is SpecificationIconString)
+        DesktopSpecificationSharedMixin.fieldIcon: action.icon!.copyWith(),
+      if (action.exec is SpecificationString)
+        DesktopSpecificationSharedMixin.fieldExec: action.exec!.copyWith(),
+      UnrecognisedEntriesMixin.fieldEntries:
+          List.of(action.unrecognisedEntries, growable: false),
     };
   }
 
@@ -74,7 +79,8 @@ class DesktopAction with DesktopSpecificationSharedMixin, GroupMixin,
       group: group ?? this.group.copyWith(),
       icon: icon ?? this.icon?.copyWith(),
       exec: exec ?? this.exec?.copyWith(),
-      unrecognisedEntries: unrecognisedEntries ?? List.of(this.unrecognisedEntries),
+      unrecognisedEntries:
+          unrecognisedEntries ?? List.of(this.unrecognisedEntries),
     );
   }
 
@@ -85,13 +91,15 @@ class DesktopAction with DesktopSpecificationSharedMixin, GroupMixin,
         group == other.group &&
         icon == other.icon &&
         exec == other.exec &&
-      const ListEquality().equals(unrecognisedEntries, other.unrecognisedEntries);
+        const ListEquality()
+            .equals(unrecognisedEntries, other.unrecognisedEntries);
   }
 
   @override
-  int get hashCode => name.hashCode ^
-    group.hashCode ^
-    icon.hashCode ^
-    exec.hashCode ^
-    unrecognisedEntries.hashCode;
+  int get hashCode =>
+      name.hashCode ^
+      group.hashCode ^
+      icon.hashCode ^
+      exec.hashCode ^
+      unrecognisedEntries.hashCode;
 }

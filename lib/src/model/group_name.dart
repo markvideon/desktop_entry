@@ -6,9 +6,7 @@ import 'interface/write_to_file.dart';
 import 'mixin/comments_mixin.dart';
 
 class DesktopGroup with CommentsMixin implements FileWritable {
-  DesktopGroup(
-    this.value, { List<String>? comments
-  }) {
+  DesktopGroup(this.value, {List<String>? comments}) {
     this.comments = comments ?? <String>[];
   }
 
@@ -17,10 +15,8 @@ class DesktopGroup with CommentsMixin implements FileWritable {
 
   // From
   factory DesktopGroup.fromMap(Map<String, dynamic> map) {
-    return DesktopGroup(
-      map[fieldValue],
-      comments: map[CommentsMixin.fieldComments]
-    );
+    return DesktopGroup(map[fieldValue],
+        comments: map[CommentsMixin.fieldComments]);
   }
 
   // To
@@ -33,33 +29,25 @@ class DesktopGroup with CommentsMixin implements FileWritable {
 
   @override
   writeToFile(File file, String? key) {
-
-    final asLines = <String>[
-      ...comments,
-      '[$value]'
-    ].map((e) => '$e\n')
-    .toList(growable: false);
+    final asLines = <String>[...comments, '[$value]']
+        .map((e) => '$e\n')
+        .toList(growable: false);
 
     for (var line in asLines) {
       file.writeAsStringSync(line, mode: FileMode.writeOnlyAppend);
     }
   }
 
-  DesktopGroup copyWith({
-    String? value,
-    List<String>? comments
-  }) {
-    return DesktopGroup(
-      value ?? this.value,
-      comments: comments ?? List.of(this.comments)
-    );
+  DesktopGroup copyWith({String? value, List<String>? comments}) {
+    return DesktopGroup(value ?? this.value,
+        comments: comments ?? List.of(this.comments));
   }
 
   @override
   bool operator ==(Object other) {
     return other is DesktopGroup &&
-      value == other.value &&
-      const ListEquality().equals(comments, other.comments);
+        value == other.value &&
+        const ListEquality().equals(comments, other.comments);
   }
 
   @override
@@ -68,8 +56,8 @@ class DesktopGroup with CommentsMixin implements FileWritable {
   @override
   toString() {
     return 'DesktopGroup{ '
-      '$fieldValue: $value, '
-      '${CommentsMixin.fieldComments}: $comments ${comments.length}'
-    '}';
+        '$fieldValue: $value, '
+        '${CommentsMixin.fieldComments}: $comments ${comments.length}'
+        '}';
   }
 }

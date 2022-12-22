@@ -40,10 +40,11 @@ class _InstallationTableState extends State<InstallationTable> {
   }
 
   checkDesktopInstallation(String basePath, {bool toggleSetState = true}) {
-    desktopInstallations[basePath] = desktopEntryFilePath(basePath, dbusName).existsSync();
+    desktopInstallations[basePath] =
+        desktopEntryFilePath(basePath, dbusName).existsSync();
     if (toggleSetState) {
       setState(() {
-      //
+        //
       });
     }
   }
@@ -62,13 +63,14 @@ class _InstallationTableState extends State<InstallationTable> {
     shellInstallation[shellFile.path] = shellFile.existsSync();
     if (toggleSetState) {
       setState(() {
-      //
+        //
       });
     }
   }
 
   checkShellDesktopInstallation(String basePath, {bool toggleSetState = true}) {
-    final exists = desktopEntryFilePath(basePath, shellScriptDesktopName).existsSync();
+    final exists =
+        desktopEntryFilePath(basePath, shellScriptDesktopName).existsSync();
     shellDesktopInstallation[basePath] = exists;
 
     if (toggleSetState) {
@@ -97,116 +99,113 @@ class _InstallationTableState extends State<InstallationTable> {
                 ],
                 rows: [
                   ...[dataHome, ...dataDirs].mapIndexed((idx, e) {
-                    return DataRow(
-                        cells: [
-                          DataCell(
-                              Text(e.path)
+                    return DataRow(cells: [
+                      DataCell(Text(e.path)),
+                      DataCell(
+                        Row(children: [
+                          InstallButton(
+                              canCall: desktopInstallations[e.path] == false,
+                              label: 'Install',
+                              onCall: () async {
+                                installAppDesktopFile(e.path).then((_) {
+                                  checkDesktopInstallation(e.path);
+                                });
+                              }),
+                          InstallButton(
+                            canCall: desktopInstallations[e.path] == true,
+                            label: 'Uninstall',
+                            onCall: () async {
+                              uninstallAppDesktopFile(e.path).then((_) {
+                                checkDesktopInstallation(e.path);
+                              });
+                            },
                           ),
-                          DataCell(
-                            Row(children: [
-                              InstallButton(
-                                  canCall: desktopInstallations[e.path] == false,
-                                  label: 'Install',
-                                  onCall: () async {
-                                    installAppDesktopFile(e.path).then((_) {
-                                      checkDesktopInstallation(e.path);
-                                    });
-                                  }),
-                              InstallButton(
-                                canCall: desktopInstallations[e.path] == true,
-                                label: 'Uninstall',
-                                onCall: () async {
-                                  uninstallAppDesktopFile(e.path).then((_) {
-                                    checkDesktopInstallation(e.path);
-                                  });
-                                },
-                              ),
-                            ]),
-                          ),
-                          DataCell(
-                              Row(children: [
-                                InstallButton(
-                                    canCall: dBusInstallations[e.path] == false,
-                                    label: 'Install',
-                                    onCall: () async {
-                                      installAppDbusServiceFile(e.path).then((_) {
-                                        checkDbusInstallation(e.path);
-                                      });
-                                    }),
-                                InstallButton(
-                                  canCall: dBusInstallations[e.path] == true,
-                                  label: 'Uninstall',
-                                  onCall: () async {
-                                    uninstallAppDbusServiceFile(e.path).then((_) {
-                                      checkDbusInstallation(e.path);
-                                    });
-                                  },
-                                ),
-                              ])
-                          ),
-                          DataCell(
-                            FutureBuilder(
-                              future: shellScriptFilePath(),
-                              builder: (context, snapshot) {
-                                if (snapshot.hasData) {
-                                  return Row(
-                                    children: [
-                                      InstallButton(
-                                          canCall: shellInstallation[snapshot.data!.path] == false,
-                                          label: 'Install',
-                                          onCall: () async {
-                                            installShellScript(dbusName: dbusName, objectPath: objectPath).then((_) {
-                                              checkShellInstallation();
-                                            });
-                                          }),
-                                      InstallButton(
-                                        canCall: shellInstallation[snapshot.data!.path] == true,
-                                        label: 'Uninstall',
-                                        onCall: () async {
-                                          uninstallShellScript().then((_) {
-                                            checkShellInstallation();
-                                          });
-                                        },
-                                      ),
-                                  ]);
-                                }
+                        ]),
+                      ),
+                      DataCell(Row(children: [
+                        InstallButton(
+                            canCall: dBusInstallations[e.path] == false,
+                            label: 'Install',
+                            onCall: () async {
+                              installAppDbusServiceFile(e.path).then((_) {
+                                checkDbusInstallation(e.path);
+                              });
+                            }),
+                        InstallButton(
+                          canCall: dBusInstallations[e.path] == true,
+                          label: 'Uninstall',
+                          onCall: () async {
+                            uninstallAppDbusServiceFile(e.path).then((_) {
+                              checkDbusInstallation(e.path);
+                            });
+                          },
+                        ),
+                      ])),
+                      DataCell(
+                        FutureBuilder(
+                            future: shellScriptFilePath(),
+                            builder: (context, snapshot) {
+                              if (snapshot.hasData) {
                                 return Row(children: [
                                   InstallButton(
-                                      canCall: false,
+                                      canCall: shellInstallation[
+                                              snapshot.data!.path] ==
+                                          false,
                                       label: 'Install',
-                                      onCall: () => null),
+                                      onCall: () async {
+                                        installShellScript(
+                                                dbusName: dbusName,
+                                                objectPath: objectPath)
+                                            .then((_) {
+                                          checkShellInstallation();
+                                        });
+                                      }),
                                   InstallButton(
-                                    canCall: false,
+                                    canCall: shellInstallation[
+                                            snapshot.data!.path] ==
+                                        true,
                                     label: 'Uninstall',
-                                    onCall: () => null,
+                                    onCall: () async {
+                                      uninstallShellScript().then((_) {
+                                        checkShellInstallation();
+                                      });
+                                    },
                                   ),
                                 ]);
                               }
-                            ),
-                          ),
-                          DataCell(
-                            Row(children: [
-                              InstallButton(
-                                  canCall: shellDesktopInstallation[e.path] == false,
-                                  label: 'Install',
-                                  onCall: () async {
-                                    installShellScriptDesktopEntry(e.path).then((_) {
-                                      checkShellDesktopInstallation(e.path);
-                                    });
-                                  }),
-                              InstallButton(
-                                canCall: shellDesktopInstallation[e.path] == true,
-                                label: 'Uninstall',
-                                onCall: () async {
-                                  uninstallShellScriptDesktopEntry(e.path).then((_) {
-                                    checkShellDesktopInstallation(e.path);
-                                  });
-                                },
-                              ),
-                            ])
-                          ),
-                        ]
-                    );
+                              return Row(children: [
+                                InstallButton(
+                                    canCall: false,
+                                    label: 'Install',
+                                    onCall: () => null),
+                                InstallButton(
+                                  canCall: false,
+                                  label: 'Uninstall',
+                                  onCall: () => null,
+                                ),
+                              ]);
+                            }),
+                      ),
+                      DataCell(Row(children: [
+                        InstallButton(
+                            canCall: shellDesktopInstallation[e.path] == false,
+                            label: 'Install',
+                            onCall: () async {
+                              installShellScriptDesktopEntry(e.path).then((_) {
+                                checkShellDesktopInstallation(e.path);
+                              });
+                            }),
+                        InstallButton(
+                          canCall: shellDesktopInstallation[e.path] == true,
+                          label: 'Uninstall',
+                          onCall: () async {
+                            uninstallShellScriptDesktopEntry(e.path).then((_) {
+                              checkShellDesktopInstallation(e.path);
+                            });
+                          },
+                        ),
+                      ])),
+                    ]);
                   }).toList(growable: false)
                 ],
               ),

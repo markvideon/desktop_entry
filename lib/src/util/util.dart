@@ -26,12 +26,9 @@ bool mapEquals<T, U>(Map<T, U>? a, Map<T, U>? b) {
   return true;
 }
 
-Future<Process> adminProcess(String processName, List<String> processArguments) async {
-  return Process.start(
-    processName,
-    processArguments,
-    runInShell: true
-  );
+Future<Process> adminProcess(
+    String processName, List<String> processArguments) async {
+  return Process.start(processName, processArguments, runInShell: true);
 }
 
 logProcessStdOut(ProcessResult processResult) {
@@ -89,7 +86,8 @@ extractLocalisedMap(String input) {
 List<String> extractContents(String input, String startChar, String endChar) {
   final regExp = RegExp(r'\' + startChar + r'(.*?)' + r'\' + endChar);
 
-  final matches = regExp.allMatches(input)
+  final matches = regExp
+      .allMatches(input)
       .map((result) => input.substring(result.start + 1, result.end - 1))
       .toList(growable: false);
 
@@ -97,7 +95,11 @@ List<String> extractContents(String input, String startChar, String endChar) {
 }
 
 handleLocalisableList<T extends SpecificationType>(
-    Map map, String relevantKey, VariantMapEntry entry, List<String> relevantComments, T Function(dynamic) processValues) {
+    Map map,
+    String relevantKey,
+    VariantMapEntry entry,
+    List<String> relevantComments,
+    T Function(dynamic) processValues) {
   bool objectExists = map[relevantKey] != null;
 
   if (!objectExists) {
@@ -109,30 +111,31 @@ handleLocalisableList<T extends SpecificationType>(
   if (entry.modifier is String) {
     // if the map entry exists, copy the value currently at the key, adding the new localised value
     // otherwise create a SpecificationLocaleString with an empty value?
-    final updatedLocalisation = Map.of(existingName.modifiers)..addEntries([
-      MapEntry(entry.modifier!,
-          LocalisableSpecificationTypeList<T>(
-            (entry.value as Iterable).map((e) => processValues(e)).toList(growable: false)
-          )
-      )
-    ]);
+    final updatedLocalisation = Map.of(existingName.modifiers)
+      ..addEntries([
+        MapEntry(
+            entry.modifier!,
+            LocalisableSpecificationTypeList<T>((entry.value as Iterable)
+                .map((e) => processValues(e))
+                .toList(growable: false)))
+      ]);
 
     map[relevantKey] = existingName.copyWith(
-        localisedValues: updatedLocalisation,
-        comments: relevantComments
-    );
+        localisedValues: updatedLocalisation, comments: relevantComments);
   } else {
     // As before
     map[relevantKey] = existingName.copyWith(
-        primitiveList: (entry.value as Iterable).map((e) => processValues(e)).toList(growable: false),
-        comments: relevantComments
-    );
+        primitiveList: (entry.value as Iterable)
+            .map((e) => processValues(e))
+            .toList(growable: false),
+        comments: relevantComments);
   }
 
   relevantComments = <String>[];
 }
 
-handleLocalisableString(Map map, String relevantKey, VariantMapEntry entry, List<String> relevantComments) {
+handleLocalisableString(Map map, String relevantKey, VariantMapEntry entry,
+    List<String> relevantComments) {
   // Due to a bug, let's copy the list to be safe.
   final applicableList = List.of(relevantComments);
 
@@ -147,27 +150,25 @@ handleLocalisableString(Map map, String relevantKey, VariantMapEntry entry, List
   if (entry.modifier is String) {
     // if the map entry exists, copy the value currently at the key, adding the new localised value
     // otherwise create a SpecificationLocaleString with an empty value?
-    final updatedLocalisation = Map.of(existingName.modifiers)..addEntries([
-      MapEntry(entry.modifier!, SpecificationLocaleString(entry.value))
-    ]);
+    final updatedLocalisation = Map.of(existingName.modifiers)
+      ..addEntries(
+          [MapEntry(entry.modifier!, SpecificationLocaleString(entry.value))]);
 
     map[relevantKey] = existingName.copyWith(
-      localisedValues: updatedLocalisation,
-      comments: applicableList
-    );
+        localisedValues: updatedLocalisation, comments: applicableList);
   } else {
     // As before
-    map[relevantKey] = existingName.copyWith(
-      value: entry.value,
-      comments: applicableList
-    );
+    map[relevantKey] =
+        existingName.copyWith(value: entry.value, comments: applicableList);
   }
   relevantComments = <String>[];
 }
 
 bool compareMaps(Map<String, dynamic> mapA, Map<String, dynamic> mapB) {
-  List<String> keysExclusiveToA = mapA.keys.where((key) => !mapB.containsKey(key)).toList(growable: false);
-  List<String> keysExclusiveToB = mapB.keys.where((key) => !mapA.containsKey(key)).toList(growable: false);
+  List<String> keysExclusiveToA =
+      mapA.keys.where((key) => !mapB.containsKey(key)).toList(growable: false);
+  List<String> keysExclusiveToB =
+      mapB.keys.where((key) => !mapA.containsKey(key)).toList(growable: false);
   List<String> differentValues = <String>[];
 
   mapA.forEach((key, value) {
@@ -184,14 +185,17 @@ bool compareMaps(Map<String, dynamic> mapA, Map<String, dynamic> mapB) {
             if (!mapEquals(listAElement, listBElement)) {
               listAElement.forEach((mapKey, listAValue) {
                 final listBValue = listBElement[mapKey];
-                if (listAValue is List && !const ListEquality().equals(listAValue, listBValue)) {
+                if (listAValue is List &&
+                    !const ListEquality().equals(listAValue, listBValue)) {
                   log('At $key $mapKey, $listAValue (hashCode: ${listAValue.hashCode}, runtimeType: ${listAValue.runtimeType}) != $listBValue (hashCode: ${listBValue.hashCode}, runtimeType: ${listBValue.runtimeType})');
                   listAValue.forEachIndexed((listIdx, listElement) {
-                    if (listBValue.elementAt(listIdx) != listAValue.elementAt(listIdx)) {
+                    if (listBValue.elementAt(listIdx) !=
+                        listAValue.elementAt(listIdx)) {
                       log('List element unequal at $key $mapKey $listIdx, ${listAValue.elementAt(listIdx)} (hashCode: ${listAValue.elementAt(listIdx).hashCode}, runtimeType: ${listAValue.elementAt(listIdx).runtimeType}) != ${listBValue.elementAt(listIdx)} (hashCode: ${listBValue.elementAt(listIdx).hashCode}, runtimeType: ${listBValue.elementAt(listIdx).runtimeType})');
                     }
                   });
-                } else if (listAValue is Map && !mapEquals(listAValue, listBValue)) {
+                } else if (listAValue is Map &&
+                    !mapEquals(listAValue, listBValue)) {
                   log('At $key $mapKey, $listAValue (hashCode: ${listAValue.hashCode}, runtimeType: ${listAValue.runtimeType}) != $listBValue (hashCode: ${listBValue.hashCode}, runtimeType: ${listBValue.runtimeType})');
                 } else {
                   if (listAValue != listBValue) {
@@ -201,16 +205,14 @@ bool compareMaps(Map<String, dynamic> mapA, Map<String, dynamic> mapB) {
               });
               log('$key $idx: $listAElement != $listBElement');
               log('${listAElement.toString().length} ... ${listBElement.toString().length}');
-
             }
           } else if (listAElement is List) {
             if (!const ListEquality().equals(listAElement, listBElement)) {
               log('$key $idx: $listAElement != $listBElement');
               log('${listAElement.toString().length} ... ${listBElement.toString().length}');
-
             }
           } else {
-            if (listAElement!= listBElement) {
+            if (listAElement != listBElement) {
               log('$key $idx: $listAElement != $listBElement');
               log('${listAElement.toString().length} ... ${listBElement.toString().length}');
             }
@@ -245,5 +247,7 @@ bool compareMaps(Map<String, dynamic> mapA, Map<String, dynamic> mapB) {
     log('differentValues for $key. mapA: ${mapA[key]} mapB: ${mapB[key]}\n\n');
   }
 
-  return keysExclusiveToA.isEmpty && keysExclusiveToB.isEmpty && differentValues.isEmpty;
+  return keysExclusiveToA.isEmpty &&
+      keysExclusiveToB.isEmpty &&
+      differentValues.isEmpty;
 }

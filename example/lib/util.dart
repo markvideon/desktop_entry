@@ -16,19 +16,17 @@ Future<void> installShellScript({
   final shellScript = await shellScriptFilePath();
 
   shellScript.writeAsStringSync("#!/bin/bash\n", mode: FileMode.writeOnly);
-  shellScript.writeAsStringSync("gdbus call --session --dest $dbusName \\\n", mode: FileMode.writeOnlyAppend);
-  shellScript.writeAsStringSync("--object-path $objectPath \\\n", mode: FileMode.writeOnlyAppend);
-  shellScript.writeAsStringSync("--method org.freedesktop.Application.Open \"['\$1']\" {}\n", mode: FileMode.writeOnlyAppend);
+  shellScript.writeAsStringSync("gdbus call --session --dest $dbusName \\\n",
+      mode: FileMode.writeOnlyAppend);
+  shellScript.writeAsStringSync("--object-path $objectPath \\\n",
+      mode: FileMode.writeOnlyAppend);
+  shellScript.writeAsStringSync(
+      "--method org.freedesktop.Application.Open \"['\$1']\" {}\n",
+      mode: FileMode.writeOnlyAppend);
 
   // Make executable
-  await Process.run(
-    'chmod',
-    [
-      '755',
-      shellScript.absolute.path
-    ],
-    runInShell: true
-  );
+  await Process.run('chmod', ['755', shellScript.absolute.path],
+      runInShell: true);
 }
 
 Future<void> uninstallShellScript() async {
@@ -37,21 +35,22 @@ Future<void> uninstallShellScript() async {
 }
 
 Future<void> installShellScriptDesktopEntry(String destinationPath) async {
-  final pathToDirectory = pathContext.dirname(desktopEntryFilePath(destinationPath, shellScriptDesktopName).path);
+  final pathToDirectory = pathContext.dirname(
+      desktopEntryFilePath(destinationPath, shellScriptDesktopName).path);
 
   final launcherContents = await launcher();
   final tempDir = await getTemporaryDirectory();
   final desktopFilePath = await installDesktopFileFromMemory(
-    tempDir: tempDir,
-    contents: launcherContents,
-    filenameNoExtension: shellScriptDesktopName,
-    installationPath: pathToDirectory
-  );
+      tempDir: tempDir,
+      contents: launcherContents,
+      filenameNoExtension: shellScriptDesktopName,
+      installationPath: pathToDirectory);
 
   await setDefaultForMimeTypes(
-    desktopFilePath,
-      launcherContents.entry.mimeType!.map((element) => element.value).toList(growable: false)
-  );
+      desktopFilePath,
+      launcherContents.entry.mimeType!
+          .map((element) => element.value)
+          .toList(growable: false));
 }
 
 Future<void> uninstallShellScriptDesktopEntry(e) async {
@@ -60,15 +59,15 @@ Future<void> uninstallShellScriptDesktopEntry(e) async {
 }
 
 Future<void> installAppDesktopFile(e, {String? desktopFileName}) async {
-  final pathToDirectory = pathContext.dirname(desktopEntryFilePath(e, desktopFileName ?? dbusName).path);
+  final pathToDirectory = pathContext
+      .dirname(desktopEntryFilePath(e, desktopFileName ?? dbusName).path);
   final tempDir = await getTemporaryDirectory();
 
   await installDesktopFileFromMemory(
       tempDir: tempDir,
       contents: entry,
       filenameNoExtension: desktopFileName ?? dbusName,
-      installationPath: pathToDirectory
-  );
+      installationPath: pathToDirectory);
 }
 
 Future<void> uninstallAppDesktopFile(e, {String? desktopFileName}) async {
@@ -81,11 +80,10 @@ Future<void> installAppDbusServiceFile(e) async {
   final tempDir = await getTemporaryDirectory();
 
   await installDbusServiceFromMemory(
-    tempDir: tempDir,
-    dBusServiceContents: dbus,
-    filenameNoExtension: dbusName,
-    installationPath: pathToDirectory
-  );
+      tempDir: tempDir,
+      dBusServiceContents: dbus,
+      filenameNoExtension: dbusName,
+      installationPath: pathToDirectory);
 }
 
 Future<void> uninstallAppDbusServiceFile(e) async {
@@ -94,12 +92,14 @@ Future<void> uninstallAppDbusServiceFile(e) async {
 }
 
 File dbusFilePath(String basePath, String dbusName) {
-  final pathToFile = pathContext.join(basePath, 'dbus-1/services/$dbusName.service');
+  final pathToFile =
+      pathContext.join(basePath, 'dbus-1/services/$dbusName.service');
   return File(pathToFile);
 }
 
 File desktopEntryFilePath(String basePath, String desktopFileName) {
-  final pathToFile = pathContext.join(basePath, 'applications/$desktopFileName.desktop');
+  final pathToFile =
+      pathContext.join(basePath, 'applications/$desktopFileName.desktop');
   return File(pathToFile);
 }
 
@@ -110,8 +110,8 @@ Future<File> shellScriptFilePath() async {
 
   final basePath = supportDir.path;
   final pathToFile = pathContext.join(
-      basePath,
-      '$shellScriptName.sh',
+    basePath,
+    '$shellScriptName.sh',
   );
 
   return File(pathToFile);

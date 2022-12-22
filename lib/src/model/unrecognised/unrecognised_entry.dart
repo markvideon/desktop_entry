@@ -8,13 +8,14 @@ import '../../util/util.dart';
 import '../interface/write_to_file.dart';
 import '../mixin/comments_mixin.dart';
 
-class UnrecognisedEntry with CommentsMixin, SupportsModifiersMixin<UnrecognisedEntry> implements FileWritable {
-  UnrecognisedEntry({
-    required this.key,
-    this.values,
-    List<String>? comments,
-    Map<String, UnrecognisedEntry>? modifiers
-  }) {
+class UnrecognisedEntry
+    with CommentsMixin, SupportsModifiersMixin<UnrecognisedEntry>
+    implements FileWritable {
+  UnrecognisedEntry(
+      {required this.key,
+      this.values,
+      List<String>? comments,
+      Map<String, UnrecognisedEntry>? modifiers}) {
     this.comments = comments ?? <String>[];
     this.modifiers = modifiers ?? <String, UnrecognisedEntry>{};
   }
@@ -31,7 +32,7 @@ class UnrecognisedEntry with CommentsMixin, SupportsModifiersMixin<UnrecognisedE
 
   // To
   static Map<String, dynamic> toData(UnrecognisedEntry entry) {
-    return <String, dynamic> {
+    return <String, dynamic>{
       fieldKey: wrapKeyWithPrefix(entry.key),
       if (entry.values is String) fieldValue: entry.values,
       CommentsMixin.fieldComments: List.of(entry.comments),
@@ -64,43 +65,46 @@ class UnrecognisedEntry with CommentsMixin, SupportsModifiersMixin<UnrecognisedE
       // Write the comments associated with the primary elements (if any)
       for (var comment in entryForModifier.comments) {
         if (comment.trim().isNotEmpty) {
-          file.writeAsStringSync(buildComment(comment), mode: FileMode.writeOnlyAppend);
+          file.writeAsStringSync(buildComment(comment),
+              mode: FileMode.writeOnlyAppend);
         }
       }
 
-      file.writeAsStringSync(buildListLine('$key[$modifiers]', entryForModifier.values ?? []), mode: FileMode.writeOnlyAppend);
+      file.writeAsStringSync(
+          buildListLine('$key[$modifiers]', entryForModifier.values ?? []),
+          mode: FileMode.writeOnlyAppend);
     });
   }
 
   // From
   factory UnrecognisedEntry.fromMap(Map<String, dynamic> map) {
     return UnrecognisedEntry(
-      key: wrapKeyWithPrefix(map[fieldKey]),
-      modifiers: map[SupportsModifiersMixin.fieldModifiers],
-      values: map[fieldValue],
-      comments: map[CommentsMixin.fieldComments]
-    );
+        key: wrapKeyWithPrefix(map[fieldKey]),
+        modifiers: map[SupportsModifiersMixin.fieldModifiers],
+        values: map[fieldValue],
+        comments: map[CommentsMixin.fieldComments]);
   }
 
   @override
-  int get hashCode => key.hashCode ^ values.hashCode ^ comments.hashCode ^ modifiers.hashCode;
+  int get hashCode =>
+      key.hashCode ^ values.hashCode ^ comments.hashCode ^ modifiers.hashCode;
 
   @override
   bool operator ==(Object other) {
     return other is UnrecognisedEntry &&
-      key == other.key &&
-      const ListEquality().equals(values, other.values) &&
-      const ListEquality().equals(comments, other.comments) &&
-      mapEquals(modifiers, other.modifiers);
+        key == other.key &&
+        const ListEquality().equals(values, other.values) &&
+        const ListEquality().equals(comments, other.comments) &&
+        mapEquals(modifiers, other.modifiers);
   }
 
   @override
   toString() {
     return 'UnrecognisedEntry{ '
-      '$fieldKey: $key, '
-      '$fieldValue: $values, '
-      '${CommentsMixin.fieldComments}: $comments, '
-      '${SupportsModifiersMixin.fieldModifiers} $modifiers '
-    '}';
+        '$fieldKey: $key, '
+        '$fieldValue: $values, '
+        '${CommentsMixin.fieldComments}: $comments, '
+        '${SupportsModifiersMixin.fieldModifiers} $modifiers '
+        '}';
   }
 }

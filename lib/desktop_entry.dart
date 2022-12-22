@@ -1,3 +1,5 @@
+/// A Dart package for managing Desktop Entry files (.desktop) and DBus Service
+/// files in Linux environments.
 library desktop_entry;
 
 export 'src/api/api.dart';

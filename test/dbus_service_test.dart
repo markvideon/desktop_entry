@@ -1,7 +1,7 @@
 import 'dart:io';
 
 import 'package:desktop_entry/desktop_entry.dart';
-import 'package:flutter_test/flutter_test.dart';
+import 'package:test/test.dart';
 
 final sampleDbusService = DBusFileContents(
   dBusServiceDefinition: DBusServiceDefinition(

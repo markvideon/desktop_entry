@@ -1,3 +1,7 @@
+## 1.0.1+1
+* Ran [dart format .] in project root as per [pub.dev] recommendation.
+* Moved [xdg_directories] to [dev_dependencies].
+
 ## 1.0.1
 * Changed the lint to [package:lints/recommended.yaml].
 * Breaking change in the API - a [Directory] must now be provided to the [install...] functions which 

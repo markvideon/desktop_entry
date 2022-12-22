@@ -10,13 +10,15 @@ environment:
 dependencies:
   collection: ^1.16.0
   path: ^1.8.2
-  xdg_directories: ^0.2.0+2
 
 dev_dependencies:
   lints: ^2.0.1
   path_provider: ^2.0.11
   test: ^1.21.4
+  xdg_directories: ^0.2.0+2
 
+  # Some tests make use of [path_provider] to access a temporary directory, which depends on the
+  # Flutter SDK.
   flutter:
     sdk: flutter
 
